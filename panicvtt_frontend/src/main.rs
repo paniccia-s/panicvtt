@@ -1,7 +1,9 @@
 #[macro_use] extern crate rocket; 
+use std::sync::Mutex;
+
 use panicvtt_engine::{self, entities::entity::Entity};
 
-use rocket::{form::Form, response::Redirect};
+use rocket::{form::Form, response::Redirect, State};
 use rocket_dyn_templates::{Template, context};
 
 //#[get("/")]
@@ -21,23 +23,25 @@ struct Command<'r> {
     command: &'r str
 }
 
-static mut COMMANDS: Vec<String> = Vec::new(); 
+struct CommandList {
+    commands: Mutex<Vec<String>>
+}
 
 #[get("/")]
-fn index() -> Template { 
+fn index(command_list: &State<CommandList>) -> Template { 
+    let lock = command_list.commands.lock().expect("index");
     Template::render("index", context! { 
-        items: unsafe { COMMANDS.clone() }
+        items: lock.clone()
      })
 }
 
 #[post("/", data = "<form_data>")]
-fn add_command(form_data: Option<Form<Command<'_>>>) -> Redirect {
+fn add_command(form_data: Option<Form<Command<'_>>>, command_list: &State<CommandList>) -> Redirect {
     match form_data {
         Some(f) => {
             println!("Got {}", f.command); 
-            unsafe {
-                COMMANDS.push(String::from(f.command));
-            }
+            let mut lock = command_list.commands.lock().expect("Lock shared data");
+            lock.push(String::from(f.command));
         },
         None => {
             println!("??");
@@ -49,6 +53,7 @@ fn add_command(form_data: Option<Form<Command<'_>>>) -> Redirect {
 #[launch]
 fn rocket() -> _ {
     rocket::build()
+    .manage(CommandList { commands: Mutex::new(Vec::new()) })
     .mount("/", routes![index, add_command])
     .attach(Template::fairing())
 }
