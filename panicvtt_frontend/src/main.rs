@@ -1,22 +1,10 @@
 #[macro_use] extern crate rocket; 
 use std::sync::Mutex;
 
-use panicvtt_engine::{self, entities::entity::Entity};
+use panicvtt_engine;
 
 use rocket::{form::Form, response::Redirect, State};
 use rocket_dyn_templates::{Template, context};
-
-//#[get("/")]
-fn old_index() -> String {
-    let mut data = String::new();
-    
-    data.push_str(&format!("PanicVTT version {}\n", panicvtt_engine::version()));
-
-    let entity = panicvtt_engine::entities::entity::EntityBase::from_str("Sam Paniccia");
-    data.push_str(&format!("By {} (UUID {})\n", entity.get_name(), entity.get_uuid())); 
-
-    data
-}
 
 #[derive(FromForm)]
 struct Command<'r> {
@@ -31,7 +19,8 @@ struct CommandList {
 fn index(command_list: &State<CommandList>) -> Template { 
     let lock = command_list.commands.lock().expect("index");
     Template::render("index", context! { 
-        items: lock.clone()
+        items: lock.clone(), 
+        version: panicvtt_engine::version(),
      })
 }
 

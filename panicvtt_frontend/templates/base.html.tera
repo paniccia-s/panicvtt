@@ -4,6 +4,7 @@
         <title>PanicVTT - By the GMs, For the</title>
     </head>
     <body>
+        <h1>PanicVTT Version {{version}}</h1>
         {% block content %}{% endblock content %}
 
         <footer>
