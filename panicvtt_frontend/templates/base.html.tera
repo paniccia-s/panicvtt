@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>PanicVTT - By the GMs, For the</title>
+    </head>
+    <body>
+        {% block content %}{% endblock content %}
+
+        <footer>
+            <a href="/">Home</a>
+        </footer
+    </body>
+</html>

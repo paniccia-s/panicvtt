@@ -1,0 +1,14 @@
+{% extends "base" %}
+
+{% block content %}
+<form action="/" method="post">
+    <input type="text" name="command" id="command" placeholder="Command...">
+    <button type="submit">Submit</button>
+</form>
+
+<ul>
+    {% for i in items %}
+        <li>{{i}}</li>
+    {% endfor %}
+</ul
+{% endblock content %}
