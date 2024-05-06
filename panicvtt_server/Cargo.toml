@@ -5,4 +5,12 @@ edition = "2021"
 
 [dependencies]
 panicvtt_engine = { path = "../panicvtt_engine" }
+panicvtt_net = { path = "../panicvtt_net" }
 
+[dependencies.async-std]
+version = "1.12.0"
+features = ["tokio1"]
+
+[dependencies.tokio]
+version = "1.37.0"
+features = ["rt", "macros"]

@@ -1,0 +1,15 @@
+[package]
+name = "panicvtt_net"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-std = "1.12.0"
+
+[dependencies.tokio]
+version = "1.37.0"
+features = ["rt", "macros"]
+
+[dependencies.tokio-util]
+version = "0.7.11"
+features = ["full"]
