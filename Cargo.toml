@@ -1,0 +1,9 @@
+[workspace]
+
+members = [
+    "panicvtt_engine",
+    "panicvtt_frontend",
+    "panicvtt_server"
+]
+
+resolver = "2"
