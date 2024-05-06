@@ -1,10 +1,10 @@
-static VERSION: &str = "pre-natal";
+mod version;
+pub mod entities;
 
 pub fn version() -> &'static str {
-    VERSION
+    version::VERSION
 }
 
-pub mod entities;
 
 #[cfg(test)]
 mod tests {
@@ -13,6 +13,6 @@ mod tests {
     #[test]
     fn it_works() {
         let version = version();
-        assert_eq!(version, VERSION);
+        assert_eq!(version, version::VERSION);
     }
 }
