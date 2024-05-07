@@ -16,7 +16,10 @@ async fn main() {
     let panicnet = PanicNetServer::new();
     let _ = panicnet.start(Ipv4Addr::LOCALHOST, 21918).await.unwrap();
 
-    thread::sleep(Duration::from_secs(15));
+    tokio::signal::ctrl_c().await.unwrap_or_else(|_| {
+        eprintln!("Failed to register ctrl-c handler!");
+        std::process::exit(1);
+    });
     
     panicnet.test();
     panicnet.close();

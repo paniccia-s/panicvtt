@@ -10,6 +10,6 @@ mod models;
 fn rocket() -> _ {
     rocket::build()
     .manage(models::CommandList { commands: Mutex::new(Vec::new()) })
-    .mount("/", routes![routes::index, routes::add_command])
+    .mount("/", routes![routes::index, routes::add_command, routes::connect, routes::disconnect, routes::vtt])
     .attach(Template::fairing())
 }

@@ -13,4 +13,4 @@ features = ["tokio1"]
 
 [dependencies.tokio]
 version = "1.37.0"
-features = ["rt", "macros"]
+features = ["rt", "macros", "signal"]

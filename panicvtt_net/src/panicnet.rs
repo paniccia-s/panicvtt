@@ -1,4 +1,4 @@
-use std::{io, net::Ipv4Addr, sync::{Arc, Mutex}};
+use std::{io, net::{Ipv4Addr, SocketAddr}, sync::{Arc, Mutex}};
 
 use async_std::net::{TcpListener, TcpStream};
 use tokio_util::sync::CancellationToken;
@@ -12,10 +12,10 @@ impl PanicNetServer {
 
     async fn accept_incoming_connections(listener_token: CancellationToken, listener: TcpListener, connection_list: Arc<Mutex<Vec<TcpStream>>>) { 
         while !listener_token.is_cancelled() {
-            let (_stream, _) = listener.accept().await.unwrap();
+            let (stream, _) = listener.accept().await.unwrap();
             println!("New client accepted!"); 
 
-            connection_list.lock().unwrap().push(_stream);
+            connection_list.lock().unwrap().push(stream);
         } 
 
         // !TODO this is never reached because listener.accept() never returns!
@@ -51,6 +51,19 @@ impl PanicNetServer {
         todo!()
     }
 
+}
+
+pub struct PanicNetClient {
+    stream: TcpStream
+}
+
+impl PanicNetClient {
+    pub async fn new(ip: Ipv4Addr, port: u16) -> Result<Self, io::Error> {
+        let stream = TcpStream::connect(SocketAddr::new(ip.into(), port)).await?;
+        Ok(Self {
+            stream
+        })
+    }
 }
 
 /*
