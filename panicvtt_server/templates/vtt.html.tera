@@ -2,7 +2,7 @@
 
 {% block content %}
 <form action="disconnect/" method="post">
-    <button type="submit">Disonnect</button>
+    <button type="submit">Disconnect</button>
 </form>
 
 <form action="/vtt" method="post">

@@ -2,8 +2,6 @@
 
 members = [
     "panicvtt_engine",
-    "panicvtt_frontend", 
-    "panicvtt_net",
     "panicvtt_server"
 ]
 

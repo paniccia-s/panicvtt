@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>PanicVTT - By the GMs, For the</title>
+        <title>PanicVTT {{subtitle}}</title>
     </head>
     <body>
         <h1>PanicVTT Version {{version}}</h1>
         {% block content %}{% endblock content %}
 
         <footer>
-            <a href="/">Home</a>
+            
         </footer
     </body>
 </html>
