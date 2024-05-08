@@ -1,37 +1,41 @@
+use std::fmt::Display;
+
 use uuid::Uuid;
 
-/// An Entity is an agent within the engine that is able to be unique identified and interacted with.
-pub trait Entity {
-    fn get_uuid(&self) -> u128;
-}
-
-pub struct EntityBase {
+/// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
+pub struct Entity {
     uuid: Uuid,
     name: String
 }
 
-impl EntityBase {
-    pub fn new(name: String) -> EntityBase {
-        EntityBase {
+impl Entity {
+    pub fn new(name: String) -> Entity {
+        Entity {
             uuid: Uuid::now_v7(),
             name
         }
     }
 
-    pub fn from_str(name: &'static str) -> EntityBase {
+    pub fn _from_str(name: &'static str) -> Entity {
         Self::new(String::from(name))
     }
 
-    pub fn get_name(&self) -> &str {
+    pub fn _get_name(&self) -> &str {
         &self.name
     }
-}
 
-impl Entity for EntityBase {
-    fn get_uuid(&self) -> u128 {
+    pub fn get_uuid(&self) -> u128 {
         self.uuid.as_u128()
     }
 }
+
+impl Display for Entity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let uuid_str = self.uuid.as_u128().to_string();
+        write!(f, "Entity {} (uuid ...{})", self.name, &uuid_str[uuid_str.len() - 6..])
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -41,14 +45,14 @@ mod tests {
     fn entitybase_new() {
         let name_raw = "David Gilmour";
         let name = String::from(name_raw);
-        let entity = EntityBase::new(name);
-        assert_eq!(entity.get_name(), name_raw);
+        let entity = Entity::new(name);
+        assert_eq!(entity._get_name(), name_raw);
     }
 
     #[test]
     fn entitybase_from() {
         let name_raw = "Rick Wright";
-        let entity = EntityBase::from_str(name_raw);
-        assert_eq!(entity.get_name(), name_raw);
+        let entity = Entity::_from_str(name_raw);
+        assert_eq!(entity._get_name(), name_raw);
     }
 }
