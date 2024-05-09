@@ -26,7 +26,7 @@ impl Entity {
         &self.name
     }
 
-    pub fn _get_uuid(&self) -> u128 {
+    pub fn get_uuid(&self) -> u128 {
         self.uuid.as_u128()
     }
 
@@ -75,6 +75,6 @@ mod tests {
         let entity = Entity::new(String::from("Nick Mason"));
         let ev = entity.to_view();
         assert_eq!(ev.get_name(), entity._get_name());
-        assert_eq!(ev.get_uuid(), entity._get_uuid());
+        assert_eq!(ev.get_uuid(), entity.get_uuid());
     }
 }

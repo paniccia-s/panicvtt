@@ -6,7 +6,7 @@
 </form>
 
 <form action="/vtt" method="post">
-    <input type="text" name="command" id="command" placeholder="Command...">
+    <input type="text" name="command" id="command" placeholder="Command..." autofocus>
     <button type="submit">Submit</button>
 </form>
 
