@@ -1,4 +1,4 @@
-use crate::entities::entity::Entity;
+use crate::entities::{entity::Entity, entityview::EntityView};
 
 
 
@@ -13,10 +13,11 @@ impl Engine {
         }
     }
 
-    pub fn create_entity(&mut self, name: &str) {
+    pub fn create_entity(&mut self, name: &str) -> EntityView {
         let entity = Entity::new(String::from(name));
+        let view = entity.to_view();
         self.entities.push(entity);
 
-        println!("{} entities: [{}]", self.entities.len(), self.entities.iter().map(|e| e.to_string()).collect::<Vec<_>>().join(", "));
+        view
     }
 }

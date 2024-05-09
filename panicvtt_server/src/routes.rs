@@ -56,13 +56,16 @@ pub fn vtt(command_list: &State<CommandList>) -> Template {
 pub fn add_command(form_data: Form<Command<'_>>, command_list: &State<CommandList>, engine: &State<Mutex<Engine>>) -> Redirect {
     // Parse the command data 
     let mut lock = engine.lock().unwrap();
-    if let Err(e) = parse_command(form_data.command, &mut lock) {
-        eprintln!("Failed to parse command: \"{}\" is an invalid token!", e.faulty_token);
-    }
     
-    // Add the command to the render list
-    let mut lock = command_list.commands.lock().expect("Lock shared data");
-    lock.push(String::from(form_data.command));
+    let message = match parse_command(form_data.command, &mut lock) {
+        Ok(message) => message, 
+        Err(e) => {
+            format!("Failed to parse command: \"{}\" is an invalid token!", e.faulty_token)
+        }
+    }; 
+                
+    let mut command_lock = command_list.commands.lock().expect("Lock shared data");
+    command_lock.push(message);
     
     // Refresh the page 
     Redirect::to("/vtt")
@@ -102,7 +105,7 @@ impl ParseError {
 
 const COMMAND_NEW_ENTITY: &str = "new_entity"; 
 
-fn parse_command(command: &str, engine: &mut Engine) -> Result<(), ParseError> {
+fn parse_command(command: &str, engine: &mut Engine) -> Result<String, ParseError> {
     // Tokenize by whitespace
     let tokens: Vec<&str> = command.split_whitespace().collect();
 
@@ -127,19 +130,18 @@ fn parse_command(command: &str, engine: &mut Engine) -> Result<(), ParseError> {
 }
 
 /// Parameters: <entity_name>
-fn command_new_entity(tokens: &Vec<&str>, engine: &mut Engine) -> Result<(), ParseError> {
+fn command_new_entity(tokens: &Vec<&str>, engine: &mut Engine) -> Result<String, ParseError> {
     // Make sure everything is formatted correctly 
     if tokens.len() != 2 {
         return Err(ParseError::new(tokens.last().unwrap_or(&""), tokens));
     }
 
-    if let Some(name) = tokens.get(1) {
-        engine.create_entity(*name);
+    return if let Some(name) = tokens.get(1) {
+        let entity = engine.create_entity(*name);
+        Ok(format!("Added entity: {}", entity))
     } else {
-        return Err(ParseError::new(tokens.last().unwrap_or(&""), tokens));
+        Err(ParseError::new(tokens.last().unwrap_or(&""), tokens))
     }
-
-    Ok(())
 } 
 
 
