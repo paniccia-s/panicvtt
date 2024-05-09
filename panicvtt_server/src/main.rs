@@ -5,6 +5,7 @@ use rocket_dyn_templates::Template;
 
 mod models;
 mod routes;
+mod parse_command;
 
 #[launch]
 fn rocket() -> _ {

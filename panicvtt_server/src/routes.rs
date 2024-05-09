@@ -1,9 +1,11 @@
-use std::{fmt::Display, sync::Mutex};
+use std::sync::Mutex;
 
 use panicvtt_engine::{self, engine::Engine};
 
 use rocket::{form::Form, response::Redirect, State};
 use rocket_dyn_templates::{Template, context};
+
+use crate::parse_command::{command_delete_entity, command_new_entity, ParseError};
 
 use super::models::{Command, CommandList};
 
@@ -78,32 +80,8 @@ pub fn disconnect() -> Redirect {
 }
 
 
-#[derive(Debug)]
-struct ParseError {
-    faulty_token: String, 
-    all_tokens: Vec<String>,
-}
-
-impl Display for ParseError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(format!("Failed to parse token {} (all tokens: [", self.faulty_token).as_str())?;
-        self.all_tokens.iter().map(|t| f.write_str(format!("{} ", t).as_str())).collect()
-    }
-}
-
-impl std::error::Error for ParseError {}
-
-impl ParseError {
-    fn new(faulty_token: &str, all_tokens: &Vec<&str>) -> Self {
-        Self {
-            faulty_token: String::from(faulty_token),
-            all_tokens: all_tokens.iter().map(|s| { String::from(*s) }).collect()
-        }
-    }
-}
-
-
-const COMMAND_NEW_ENTITY: &str = "new_entity"; 
+const COMMAND_NEW_ENTITY: &str      = "new_entity";
+const COMMAND_DELETE_ENTITY: &str   = "delete_entity"; 
 
 fn parse_command(command: &str, engine: &mut Engine) -> Result<String, ParseError> {
     // Tokenize by whitespace
@@ -115,7 +93,10 @@ fn parse_command(command: &str, engine: &mut Engine) -> Result<String, ParseErro
             match *cmd {
                 COMMAND_NEW_ENTITY => {
                     command_new_entity(&tokens, engine)
-                }
+                }, 
+                COMMAND_DELETE_ENTITY => {
+                    command_delete_entity(&tokens, engine)
+                }, 
                 _ => {
                     // Invalid token! 
                     Err(ParseError::new(*cmd, &tokens))
@@ -128,20 +109,5 @@ fn parse_command(command: &str, engine: &mut Engine) -> Result<String, ParseErro
         }
     } 
 }
-
-/// Parameters: <entity_name>
-fn command_new_entity(tokens: &Vec<&str>, engine: &mut Engine) -> Result<String, ParseError> {
-    // Make sure everything is formatted correctly 
-    if tokens.len() != 2 {
-        return Err(ParseError::new(tokens.last().unwrap_or(&""), tokens));
-    }
-
-    return if let Some(name) = tokens.get(1) {
-        let entity = engine.create_entity(*name);
-        Ok(format!("Added entity: {}", entity))
-    } else {
-        Err(ParseError::new(tokens.last().unwrap_or(&""), tokens))
-    }
-} 
 
 
