@@ -1,0 +1,2 @@
+[env]
+ROCKET_CONFIG = "panicvtt_server/Rocket.toml"
