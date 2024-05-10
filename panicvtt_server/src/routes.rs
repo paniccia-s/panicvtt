@@ -83,7 +83,7 @@ pub fn disconnect() -> Redirect {
 const COMMAND_NEW_ENTITY: &str      = "new_entity";
 const COMMAND_DELETE_ENTITY: &str   = "delete_entity"; 
 
-fn parse_command(command: &str, state: &mut PanicState) -> Result<String, ParseError> {
+pub(super) fn parse_command(command: &str, state: &mut PanicState) -> Result<String, ParseError> {
     // Tokenize by whitespace
     let tokens: Vec<&str> = command.split_whitespace().collect();
 
