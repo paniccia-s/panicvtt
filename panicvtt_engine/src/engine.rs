@@ -33,4 +33,9 @@ impl Engine {
             }
         }
     }
+
+    pub fn list_entities(&self) -> Vec<EntityView> {
+        self.entities.values().map(|x| x.to_view()).collect()
+    }
+
 }

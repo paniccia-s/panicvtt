@@ -77,3 +77,8 @@ pub(super) fn command_delete_entity(tokens: &Vec<&str>, state: &mut PanicState) 
         Err(ParseError::new(tokens.last().unwrap_or(&""), tokens))
     }
 }
+
+pub(super) fn command_list_entities(_tokens: &Vec<&str>, state: &mut PanicState) -> Result<String, ParseError> {
+    // Ignore any trailing tokens - this can't fail at the parser level 
+    Ok(state.engine.list_entities().iter().map(|e| e.to_string()).collect::<Vec<String>>().join(", "))
+}
