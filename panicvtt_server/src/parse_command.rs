@@ -42,7 +42,7 @@ pub(super) fn command_new_entity(tokens: &Vec<&str>, state: &mut PanicState) -> 
             let entity = state.engine.new_entity(*name);
             let entity_str = entity.to_string();
             
-            state.entities.insert(entity.name.clone(), entity);
+            state.entities.insert(String::from(entity.get_name()), entity.get_uuid());
             Ok(format!("Added entity: {}", entity_str))  
         }
     } else {
@@ -62,9 +62,9 @@ pub(super) fn command_delete_entity(tokens: &Vec<&str>, state: &mut PanicState) 
         match state.entities.remove(&String::from(*name)) {
             Some(entity) => {
                 // Remove it from the engine
-                match state.engine.delete_entity(&entity) {
+                match state.engine.delete_entity(entity) {
                     Ok(e) => Ok(format!("Removed entity: {}", e.get_name())), 
-                    Err(()) => Ok(format!("ERROR: entity with name {} exists locally but not within the engine!", entity.get_name()))
+                    Err(()) => Ok(format!("ERROR: entity with name {} exists locally but not within the engine!", *name))
                 }
             }, 
             None => {

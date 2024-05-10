@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use panicvtt_engine::{engine::Engine, entities::entityview::EntityView};
+use panicvtt_engine::engine::Engine;
 
 pub(super) struct PanicState {
     pub(super) engine: Engine,
-    pub(super) entities: HashMap<String, EntityView>
+    pub(super) entities: HashMap<String, u128>
 }
 
 impl PanicState {
