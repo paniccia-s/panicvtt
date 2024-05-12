@@ -5,7 +5,7 @@ use panicvtt_engine;
 use rocket::{form::Form, response::Redirect, State};
 use rocket_dyn_templates::{Template, context};
 
-use crate::{panic_state::PanicState, parse_command::{command_delete_entity, command_get_entity_ability, command_list_entities, command_new_entity, ParseError}};
+use crate::{panic_state::PanicState, parse_command::{command_delete_entity, command_get_entity_ability, command_list_entities, command_new_entity}, parse_error::ParseError};
 
 use super::models::{Command, CommandList};
 
@@ -62,7 +62,7 @@ pub fn add_command(form_data: Form<Command<'_>>, command_list: &State<CommandLis
     let message = match parse_command(form_data.command, &mut lock) {
         Ok(message) => message, 
         Err(e) => {
-            format!("Failed to parse command: \"{}\" is an invalid token!", e.faulty_token)
+            format!("Failed to parse command: {}!", e)
         }
     }; 
                 
@@ -99,13 +99,13 @@ pub(super) fn parse_command(command: &str, state: &mut PanicState) -> Result<Str
                 COMMAND_GET_ENTITY_ABILITY  => command_get_entity_ability(&tokens, state),
                 _ => {
                     // Invalid token! 
-                    Err(ParseError::new(*cmd, &tokens))
+                    Err(ParseError::from_syntax_error(&tokens, *cmd))
                 }
             } 
         }, 
         None => {
             // We got nothing 
-            Err(ParseError::new("", &tokens))
+            Err(ParseError::from_wrong_num_args(&tokens, 0, 1))
         }
     } 
 }

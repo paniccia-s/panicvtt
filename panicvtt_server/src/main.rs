@@ -1,7 +1,7 @@
 #[macro_use] extern crate rocket; 
 
 use std::{fs::File, io::Read, sync::Mutex};
-use parse_command::ParseError;
+use parse_error::ParseError;
 use rocket_dyn_templates::Template;
 use panic_state::PanicState;
 use routes::parse_command;
@@ -10,6 +10,7 @@ use serde::{Serialize, Deserialize};
 mod models;
 mod routes;
 mod parse_command;
+mod parse_error;
 mod panic_state; 
 
 #[derive(Serialize, Deserialize)]
@@ -43,7 +44,7 @@ fn define_initial_state(state_path: Option<&str>) -> (Vec<String>, PanicState) {
                     }, 
                     Err(e) => {
                         // Something failed to parse. Reject the entire file
-                        eprintln!("Failed to parse initial state command: {}!", e.faulty_token);
+                        eprintln!("Failed to parse initial state command: {}!", e);
                     }
                 }
             }, 

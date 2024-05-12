@@ -1,38 +1,8 @@
-use std::fmt::Display;
-
-use crate::panic_state::PanicState;
-
-#[derive(Debug)]
-pub(super) struct ParseError {
-    pub(super) faulty_token: String, 
-    all_tokens: Vec<String>,
-}
-
-impl Display for ParseError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(format!("Failed to parse token {} (all tokens: [", self.faulty_token).as_str())?;
-        self.all_tokens.iter().map(|t| f.write_str(format!("{} ", t).as_str())).collect()
-    }
-}
-
-impl std::error::Error for ParseError {}
-
-impl ParseError {
-    pub(super) fn new(faulty_token: &str, all_tokens: &Vec<&str>) -> Self {
-        Self {
-            faulty_token: String::from(faulty_token),
-            all_tokens: all_tokens.iter().map(|s| { String::from(*s) }).collect()
-        }
-    }
-}
+use crate::{panic_state::PanicState, parse_error::ParseError};
 
 /// Parameters: <entity_name>
 pub(super) fn command_new_entity(tokens: &Vec<&str>, state: &mut PanicState) -> Result<String, ParseError> {
-    // Make sure everything is formatted correctly 
-    if tokens.len() != 2 {
-        return Err(ParseError::new(tokens.last().unwrap_or(&""), tokens));
-    }
-    
+    // Validate parameter count
     return if let Some(name) = tokens.get(1) {
         // !TODO do not allow name duplicates until we can resolve them through the webpage
         if state.entities.contains_key(*name) {
@@ -45,18 +15,15 @@ pub(super) fn command_new_entity(tokens: &Vec<&str>, state: &mut PanicState) -> 
             state.entities.insert(String::from(entity.get_name()), entity.get_uuid());
             Ok(format!("Added entity: {}", entity_str))  
         }
-    } else {
-        Err(ParseError::new(tokens.last().unwrap_or(&""), tokens))
-    }
+    } else { 
+        return Err(ParseError::from_wrong_num_args(     // !TODO idk about this unwrap_or() behavior here. 
+            tokens, 2, tokens.len().try_into().unwrap_or(u8::MAX)));
+    }  
 } 
 
 /// Parameters: <entity_name> (!TODO eventually EntityView?)
 pub(super) fn command_delete_entity(tokens: &Vec<&str>, state: &mut PanicState) -> Result<String, ParseError> {
-    // Validate format 
-    if tokens.len() != 2 {
-        return Err(ParseError::new(tokens.last().unwrap_or(&""), tokens));
-    }
-
+    // Validate parameter count
     return if let Some(name) = tokens.get(1) {
         // Try to remove an entity with this name 
         match state.entities.remove(&String::from(*name)) {
@@ -74,7 +41,8 @@ pub(super) fn command_delete_entity(tokens: &Vec<&str>, state: &mut PanicState) 
             }
         }
     } else {
-        Err(ParseError::new(tokens.last().unwrap_or(&""), tokens))
+        return Err(ParseError::from_wrong_num_args(     // !TODO idk about this unwrap_or() behavior here. 
+            tokens, 2, tokens.len().try_into().unwrap_or(u8::MAX)));
     }
 }
 
