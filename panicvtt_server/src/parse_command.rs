@@ -32,7 +32,7 @@ pub(super) fn command_new_entity(tokens: &Vec<&str>, state: &mut PanicState) -> 
     if tokens.len() != 2 {
         return Err(ParseError::new(tokens.last().unwrap_or(&""), tokens));
     }
-
+    
     return if let Some(name) = tokens.get(1) {
         // !TODO do not allow name duplicates until we can resolve them through the webpage
         if state.entities.contains_key(*name) {
@@ -81,4 +81,18 @@ pub(super) fn command_delete_entity(tokens: &Vec<&str>, state: &mut PanicState) 
 pub(super) fn command_list_entities(_tokens: &Vec<&str>, state: &mut PanicState) -> Result<String, ParseError> {
     // Ignore any trailing tokens - this can't fail at the parser level 
     Ok(state.engine.list_entities().iter().map(|e| e.to_string()).collect::<Vec<String>>().join(", "))
+}
+
+pub(super) fn command_get_entity_ability(_tokens: &Vec<&str>, _state: &mut PanicState) -> Result<String, ParseError> {
+    // // Validate format 
+    // if tokens.len() != 3 {
+    //     return Err(ParseError::new(tokens.last().unwrap_or(&""), tokens));
+    // }
+
+    // let name = tokens.get(1).unwrap();
+    // let stat = tokens.get(2).unwrap();
+
+    todo!("Refactoring ParseError so this isn't done yet");
+
+    //Ok(String::new())
 }

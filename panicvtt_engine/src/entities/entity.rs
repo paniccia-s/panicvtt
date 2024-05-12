@@ -2,17 +2,21 @@ use std::fmt::Display;
 
 use uuid::Uuid;
 
+use super::abilities::AbilityScores;
+
 /// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
 pub struct Entity {
     uuid: Uuid,
-    name: String
+    name: String, 
+    abilities: AbilityScores,
 }
 
 impl Entity {
     pub fn new(name: String) -> Entity {
         Entity {
             uuid: Uuid::now_v7(),
-            name
+            name, 
+            abilities: AbilityScores::from_defaults()
         }
     }
     
@@ -28,14 +32,11 @@ impl Entity {
 
 impl Display for Entity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        format_entity_data(f, &self.uuid, &self.name)
+        let uuid_str = self.uuid.as_u128().to_string();
+        write!(f, "Entity {} (uuid ...{}) {{{}}}", self.name, &uuid_str[uuid_str.len() - 6..], self.abilities)
     }
 }
-
-pub(super) fn format_entity_data(f: &mut std::fmt::Formatter<'_>, uuid: &Uuid, name: &String) -> std::fmt::Result {
-    let uuid_str = uuid.as_u128().to_string();
-    write!(f, "Entity {} (uuid ...{})", name, &uuid_str[uuid_str.len() - 6..])
-}
+ 
 
 
 #[cfg(test)]

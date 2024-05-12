@@ -40,4 +40,10 @@ impl Engine {
         self.entities.values().collect()
     }
 
+    pub fn test(&self) -> &Entity {
+        let d = self.entities.values();
+        let b = d.collect::<Vec<&Entity>>();
+        b.first().expect("test")
+    }
+
 }
