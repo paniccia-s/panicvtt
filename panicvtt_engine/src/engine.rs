@@ -25,6 +25,15 @@ impl Engine {
         self.entities.get(&uuid).expect("")
     }
 
+    pub fn new_entity_with_abilities(&mut self, name: &str, abilities: AbilityScores) -> &Entity {
+        let entity = Entity::from_attributes(String::from(name), abilities);
+        let uuid = entity.get_uuid();
+        self.entities.insert(uuid, entity);
+        
+        // We just put this entity in, so this cannot fail 
+        self.entities.get(&uuid).expect("")
+    }
+
     pub fn delete_entity(&mut self, uuid: EntityID) -> Result<Entity, ()> {
         match self.entities.remove(&uuid) {
             Some(e) => {

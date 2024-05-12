@@ -13,13 +13,16 @@ pub struct Entity {
 
 impl Entity {
     pub fn new(name: String) -> Entity {
-        Entity {
-            uuid: Uuid::now_v7(),
-            name, 
-            abilities: AbilityScores::from_defaults()
-        }
+        Self::from_attributes(name, AbilityScores::from_defaults())
     }
     
+    pub fn from_attributes(name: String, abilities: AbilityScores) -> Self {
+        Self {
+            uuid: Uuid::now_v7(),
+            name, 
+            abilities
+        }
+    }
 
     pub fn get_name(&self) -> &str {
         &self.name
@@ -56,13 +59,6 @@ mod tests {
         let name_raw = "David Gilmour";
         let name = String::from(name_raw);
         let entity = Entity::new(name);
-        assert_eq!(entity.get_name(), name_raw);
-    }
-
-    #[test]
-    fn entity_from() {
-        let name_raw = "Rick Wright";
-        let entity = Entity::_from_str(name_raw);
         assert_eq!(entity.get_name(), name_raw);
     }
 }
