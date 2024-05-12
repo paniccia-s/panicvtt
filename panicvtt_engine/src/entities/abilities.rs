@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 pub type AbilityScoreIntType = u8;
-pub(super) struct AbilityScores {
+pub struct AbilityScores {
     strength: AbilityScoreIntType,
     dexterity: AbilityScoreIntType,
     constitution: AbilityScoreIntType,
@@ -11,18 +11,18 @@ pub(super) struct AbilityScores {
 }
 
 impl AbilityScores {
-    pub(super) fn new(strength: AbilityScoreIntType, dexterity: AbilityScoreIntType, constitution: AbilityScoreIntType, intelligence: AbilityScoreIntType, wisdom: AbilityScoreIntType, charisma: AbilityScoreIntType) -> Self {
+    pub fn new(strength: AbilityScoreIntType, dexterity: AbilityScoreIntType, constitution: AbilityScoreIntType, intelligence: AbilityScoreIntType, wisdom: AbilityScoreIntType, charisma: AbilityScoreIntType) -> Self {
         Self {
             strength, dexterity, constitution, 
             intelligence, wisdom, charisma
         }
     }
 
-    pub(super) fn from_defaults() -> Self {
+    pub fn from_defaults() -> Self {
         Self::new(10, 10, 10, 10, 10, 10)
     }
 
-    pub(super) fn get_ability_score(&self, ability: Ability) -> AbilityScoreIntType {
+    pub fn get_ability_score(&self, ability: Ability) -> AbilityScoreIntType {
         return match ability {
             Ability::Strength => self.strength,
             Ability::Dexterity => self.dexterity,

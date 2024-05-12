@@ -32,6 +32,10 @@ impl Entity {
     pub fn get_ability_score(&self, ability: Ability) -> AbilityScoreIntType {
         self.abilities.get_ability_score(ability)
     }
+
+    pub fn get_ability_scores(&self) -> &AbilityScores {
+        &self.abilities
+    }
 }
 
 impl Display for Entity {

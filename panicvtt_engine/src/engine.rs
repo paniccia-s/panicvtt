@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::entities::{abilities::{Ability, AbilityScoreIntType}, entity::Entity};
+use crate::entities::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, entity::Entity};
 
 /// The token by which to uniquely identify Entities within the engine.
 type EntityID = u128;
@@ -44,4 +44,7 @@ impl Engine {
         Some(self.entities.get(&uuid)?.get_ability_score(ability))
     }
 
+    pub fn get_ability_scores(&self, uuid: EntityID) -> Option<&AbilityScores> {
+        Some(self.entities.get(&uuid)?.get_ability_scores())
+    }
 }

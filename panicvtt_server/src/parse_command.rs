@@ -73,3 +73,18 @@ pub(super) fn command_get_entity_ability(tokens: &Vec<&str>, state: &mut PanicSt
             tokens, 3, tokens.len().try_into().unwrap_or(u8::MAX)));
     }
 }
+
+pub(super) fn command_get_entity_abilities(tokens: &Vec<&str>, state: &mut PanicState) -> Result<String, ParseError> {
+    return if let Some(name) = tokens.get(1) {
+        // Try to match an Entity with this name
+        if let Some(uuid) = state.entities.get(*name) {
+            // Get the abilities 
+            let abilities = state.engine.get_ability_scores(*uuid).unwrap();
+            Ok(format!("{}: [{}]", *name, abilities))
+        } else {
+            Ok(format!("ERROR: no entity named {} exists!", *name))
+        }
+    } else {        // !TODO idk about this unwrap_or() behavior here. 
+        Err(ParseError::from_wrong_num_args(tokens, 2, tokens.len().try_into().unwrap_or(u8::MAX)))
+    }
+}

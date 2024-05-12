@@ -5,7 +5,7 @@ use panicvtt_engine;
 use rocket::{form::Form, response::Redirect, State};
 use rocket_dyn_templates::{Template, context};
 
-use crate::{panic_state::PanicState, parse_command::{command_delete_entity, command_get_entity_ability, command_list_entities, command_new_entity}, parse_error::ParseError};
+use crate::{panic_state::PanicState, parse_command::{command_delete_entity, command_get_entity_abilities, command_get_entity_ability, command_list_entities, command_new_entity}, parse_error::ParseError};
 
 use super::models::{Command, CommandList};
 
@@ -84,6 +84,7 @@ const COMMAND_NEW_ENTITY:           &str = "new_entity";
 const COMMAND_DELETE_ENTITY:        &str = "delete_entity"; 
 const COMMAND_LIST_ENTITIES:        &str = "list_entities";
 const COMMAND_GET_ENTITY_ABILITY:   &str = "get_entity_ability";
+const COMMAND_GET_ENTITY_ABILITIES: &str = "get_entity_abilities";
 
 pub(super) fn parse_command(command: &str, state: &mut PanicState) -> Result<String, ParseError> {
     // Tokenize by whitespace
@@ -93,10 +94,11 @@ pub(super) fn parse_command(command: &str, state: &mut PanicState) -> Result<Str
     return match tokens.first() {
         Some(cmd) => {
             match *cmd {
-                COMMAND_NEW_ENTITY          => command_new_entity(&tokens, state), 
-                COMMAND_DELETE_ENTITY       => command_delete_entity(&tokens, state), 
-                COMMAND_LIST_ENTITIES       => command_list_entities(&tokens, state),
-                COMMAND_GET_ENTITY_ABILITY  => command_get_entity_ability(&tokens, state),
+                COMMAND_NEW_ENTITY              => command_new_entity(&tokens, state), 
+                COMMAND_DELETE_ENTITY           => command_delete_entity(&tokens, state), 
+                COMMAND_LIST_ENTITIES           => command_list_entities(&tokens, state),
+                COMMAND_GET_ENTITY_ABILITY      => command_get_entity_ability(&tokens, state),
+                COMMAND_GET_ENTITY_ABILITIES    => command_get_entity_abilities(&tokens, state),
                 _ => {
                     // Invalid token! 
                     Err(ParseError::from_syntax_error(&tokens, *cmd))
