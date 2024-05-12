@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use uuid::Uuid;
 
-use super::abilities::AbilityScores;
+use super::abilities::{Ability, AbilityScoreIntType, AbilityScores};
 
 /// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
 pub struct Entity {
@@ -27,6 +27,10 @@ impl Entity {
 
     pub fn get_uuid(&self) -> u128 {
         self.uuid.as_u128()
+    }
+
+    pub fn get_ability_score(&self, ability: Ability) -> AbilityScoreIntType {
+        self.abilities.get_ability_score(ability)
     }
 }
 

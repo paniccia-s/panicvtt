@@ -1,3 +1,5 @@
+use panicvtt_engine::entities::abilities::Ability;
+
 use crate::{panic_state::PanicState, parse_error::ParseError};
 
 /// Parameters: <entity_name>
@@ -51,16 +53,23 @@ pub(super) fn command_list_entities(_tokens: &Vec<&str>, state: &mut PanicState)
     Ok(state.engine.list_entities().iter().map(|e| e.to_string()).collect::<Vec<String>>().join(", "))
 }
 
-pub(super) fn command_get_entity_ability(_tokens: &Vec<&str>, _state: &mut PanicState) -> Result<String, ParseError> {
-    // // Validate format 
-    // if tokens.len() != 3 {
-    //     return Err(ParseError::new(tokens.last().unwrap_or(&""), tokens));
-    // }
-
-    // let name = tokens.get(1).unwrap();
-    // let stat = tokens.get(2).unwrap();
-
-    todo!("Refactoring ParseError so this isn't done yet");
-
-    //Ok(String::new())
+pub(super) fn command_get_entity_ability(tokens: &Vec<&str>, state: &mut PanicState) -> Result<String, ParseError> {
+    return if let (Some(name), Some(ability_str)) = (tokens.get(1), tokens.get(2)) {
+        // Try to match an Entity with this name 
+        if let Some(uuid) = state.entities.get(*name) {
+            // See if the Ability is valid 
+            if let Some(ability) = Ability::from_str(*ability_str) {
+                // Go for it 
+                let d = state.engine.get_ability_score(*uuid, ability).unwrap();
+                Ok(format!("{} {} = {}", *name, ability_str, d))
+            } else {
+                Ok(format!("ERROR: no ability named {}!", *ability_str))
+            }
+        } else {
+            Ok(format!("ERROR: no entity named {} exists!", *name))
+        }
+    } else {
+        return Err(ParseError::from_wrong_num_args(     // !TODO idk about this unwrap_or() behavior here. 
+            tokens, 3, tokens.len().try_into().unwrap_or(u8::MAX)));
+    }
 }

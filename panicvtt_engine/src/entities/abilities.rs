@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-type AbilityScoreIntType = u8;
+pub type AbilityScoreIntType = u8;
 pub(super) struct AbilityScores {
     strength: AbilityScoreIntType,
     dexterity: AbilityScoreIntType,
@@ -47,7 +47,7 @@ impl Display for AbilityScores {
     }
 }
 
-pub(super) enum Ability {
+pub enum Ability {
     Strength, 
     Dexterity,
     Constitution,
@@ -57,6 +57,17 @@ pub(super) enum Ability {
 }
 
 impl Ability { 
+    pub fn from_str(val: &str) -> Option<Ability> {
+        match val {
+            "STR" => Some(Ability::Strength), 
+            "DEX" => Some(Ability::Dexterity), 
+            "CON" => Some(Ability::Constitution), 
+            "INT" => Some(Ability::Intelligence), 
+            "WIS" => Some(Ability::Wisdom), 
+            "CHA" => Some(Ability::Charisma), 
+            _ => None
+        }
+    }
 }
 
 impl Display for Ability {
