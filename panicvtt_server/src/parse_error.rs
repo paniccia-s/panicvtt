@@ -22,8 +22,8 @@ impl Display for ParseErrorKind {
 
 #[derive(Debug)]
 pub(super) struct ParseError { 
-    all_tokens: Vec<String>,
-    error_kind: ParseErrorKind
+    pub(super) all_tokens: Vec<String>,
+    pub(super) error_kind: ParseErrorKind
 }
 
 impl Display for ParseError {

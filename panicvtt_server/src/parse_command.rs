@@ -17,30 +17,36 @@ pub(super) fn command_new_entity(
             ))
         } else {
             // If abilities are provided, parse and deliver them
-            if let (
-                Some(str_str), Some(dex_str), Some(con_str),
-                Some(int_str), Some(wis_str), Some(cha_str),
-            ) = (
-                tokens.get(2), tokens.get(3), tokens.get(4),
-                tokens.get(5), tokens.get(6), tokens.get(7),
-            ) {
-                // Now attempt to parse them into ints
-                if let (Ok(str), Ok(dex), Ok(con), Ok(int), Ok(wis), Ok(cha)) = (
-                    str_str.parse::<AbilityScoreIntType>(), dex_str.parse::<AbilityScoreIntType>(),
-                    con_str.parse::<AbilityScoreIntType>(), int_str.parse::<AbilityScoreIntType>(),
-                    wis_str.parse::<AbilityScoreIntType>(), cha_str.parse::<AbilityScoreIntType>(),
+            if tokens.len() > 2 {
+                if let (
+                    Some(str_str), Some(dex_str), Some(con_str),
+                    Some(int_str), Some(wis_str), Some(cha_str),
+                ) = (
+                    tokens.get(2), tokens.get(3), tokens.get(4),
+                    tokens.get(5), tokens.get(6), tokens.get(7),
                 ) {
-                    // Create a new entity with this name and ability set and register it locally
-                    let abilities = AbilityScores::new(str, dex, con, int, wis, cha);
-                    let entity = state.engine.new_entity_with_abilities(name, abilities);
-                    let entity_str = entity.to_string();
-
-                    state.entities.insert(String::from(entity.get_name()), entity.get_uuid());
-                    Ok(format!("Added entity: {}", entity_str))
-                } else {
-                    Err(ParseError::from_syntax_error(&tokens, str_str))
+                    // Now attempt to parse them into ints
+                    if let (Ok(str), Ok(dex), Ok(con), Ok(int), Ok(wis), Ok(cha)) = (
+                        str_str.parse::<AbilityScoreIntType>(), dex_str.parse::<AbilityScoreIntType>(),
+                        con_str.parse::<AbilityScoreIntType>(), int_str.parse::<AbilityScoreIntType>(),
+                        wis_str.parse::<AbilityScoreIntType>(), cha_str.parse::<AbilityScoreIntType>(),
+                    ) {
+                        // Create a new entity with this name and ability set and register it locally
+                        let abilities = AbilityScores::new(str, dex, con, int, wis, cha);
+                        let entity = state.engine.new_entity_with_abilities(name, abilities);
+                        let entity_str = entity.to_string();
+    
+                        state.entities.insert(String::from(entity.get_name()), entity.get_uuid());
+                        Ok(format!("Added entity: {}", entity_str))
+                    } else {
+                        let s = format!("{} {} {} {} {} {}", str_str, dex_str, con_str, int_str, wis_str, cha_str);
+                        Err(ParseError::from_syntax_error(&tokens, &s))
+                    }
+                } else { 
+                    Err(ParseError::from_wrong_num_args(tokens, 7, tokens.len().try_into().unwrap_or(u8::MAX)))
                 }
-            } else {
+            }
+            else {
                 // Create a new entity with this name and default abilities and register it locally
                 let entity = state.engine.new_entity(*name);
                 let entity_str = entity.to_string();
@@ -148,4 +154,123 @@ pub(super) fn command_get_entity_abilities(
         // !TODO idk about this unwrap_or() behavior here.
         Err(ParseError::from_wrong_num_args(tokens, 2, tokens.len().try_into().unwrap_or(u8::MAX)))
     };
+}
+
+
+#[cfg(test)]
+mod tests {
+    use panicvtt_engine::engine::Engine;
+
+    use crate::parse_error::ParseErrorKind;
+
+    use super::*;
+
+    #[test]
+    fn new_entity_happy_path() {
+        let mut state = PanicState::new(Engine::new());
+
+        // Happy-path default instantiation 
+        let tokens = vec!["new_entity", "David"];
+        let insertion = command_new_entity(&tokens, &mut state);
+        
+        assert!(insertion.is_ok());
+        let res_str = insertion.unwrap(); 
+        assert!(res_str.starts_with("Added entity: Entity David (uuid ..."));
+        assert!(res_str.ends_with(")")); 
+
+        // Happy-path custom-attribute instantiation 
+        let tokens = vec!["new_entity", "Rick", "1", "2", "3", "4", "5", "6"];
+        let insertion = command_new_entity(&tokens, &mut state);
+
+        assert!(insertion.is_ok());
+        let res_str = insertion.unwrap();
+        assert!(res_str.starts_with("Added entity: Entity Rick (uuid ..."));
+        assert!(res_str.ends_with(")"));
+    }
+
+    #[test]
+    fn new_entity_wrong_num_args() {
+        let mut state = PanicState::new(Engine::new());
+ 
+        // Wrong number of arguments 
+        let mut tokens = vec!["new_entity" ];
+        let insertion = command_new_entity(&tokens, &mut state);
+        
+        assert!(insertion.is_err());
+        let res_err = insertion.unwrap_err();
+
+        match res_err.error_kind {
+            ParseErrorKind::WrongNumArgs { expected_num, actual_num } => {
+                assert!(expected_num == 2 && actual_num == 1);
+            }, 
+            ParseErrorKind::SyntaxError { bad_token: _ } => panic!()
+        };
+
+        let new_tokens = vec!["1", "2", "3", "4", "5"];
+        tokens.push("Syd");
+
+        for i in 0..5 {
+            // Add some custom ability scores, but not enough 
+            tokens.push(*new_tokens.get(i).unwrap());
+
+            // Reset the state so we don't repeat actors
+            let mut state = PanicState::new(Engine::new());
+            
+            let insertion = command_new_entity(&tokens, &mut state);
+            assert!(insertion.is_err()); 
+
+            match insertion.unwrap_err().error_kind {
+                ParseErrorKind::WrongNumArgs { expected_num, actual_num } => {
+                    assert!(expected_num == 7 && actual_num == (2 + i + 1) as u8);
+                }, 
+                ParseErrorKind::SyntaxError { bad_token: _ } => panic!()
+            };
+        }
+    }
+
+    #[test]
+    fn new_entity_duplicate_name() {
+        let mut state = PanicState::new(Engine::new());
+
+        // Insert one entity, then do it again 
+        let tokens = vec!["new_entity", "Nick"];
+        let _ok = command_new_entity(&tokens, &mut state); 
+        assert!(_ok.is_ok());
+
+        let insertion = command_new_entity(&tokens, &mut state);
+        assert!(insertion.is_ok()); 
+
+        assert_eq!(insertion.unwrap(), "ERROR: Entity with name Nick already exists; we can't handle duplicates yet!")
+    }
+
+    #[test]
+    fn new_entity_non_u8_vals() {
+        let mut state = PanicState::new(Engine::new());
+
+        let tokens_lists = vec![
+            vec!["new_entity", "1", "STR", "10", "10", "10", "10", "10"],
+            vec!["new_entity", "2", "10", "DEX", "10", "10", "10", "10"],
+            vec!["new_entity", "3", "10", "10", "CON", "10", "10", "10"],
+            vec!["new_entity", "4", "10", "10", "10", "INT", "10", "10"],
+            vec!["new_entity", "5", "10", "10", "10", "10", "WIS", "10"],
+            vec!["new_entity", "6", "10", "10", "10", "10", "10", "CHA"],
+        ];
+        let err_list = vec![
+            "STR 10 10 10 10 10", "10 DEX 10 10 10 10", "10 10 CON 10 10 10", 
+            "10 10 10 INT 10 10", "10 10 10 10 WIS 10", "10 10 10 10 10 CHA"
+        ];
+
+        for iter in tokens_lists.iter().zip(err_list) {
+            let (tokens, err_token) = iter;
+            let insertion = command_new_entity(&tokens, &mut state);
+            assert!(insertion.is_err()); 
+
+            match insertion.unwrap_err().error_kind {
+                ParseErrorKind::WrongNumArgs { expected_num: _, actual_num: _ } => panic!(), 
+                ParseErrorKind::SyntaxError { bad_token } => {
+                    assert_eq!(bad_token, String::from(err_token));
+                }
+            };
+        }
+    }
 }

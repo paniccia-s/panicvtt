@@ -1,6 +1,8 @@
 use std::fmt::Display;
 
 pub type AbilityScoreIntType = u8;
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct AbilityScores {
     strength: AbilityScoreIntType,
     dexterity: AbilityScoreIntType,
@@ -88,7 +90,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn stats_new() {
+    fn ability_scores_new() {
         let scores = AbilityScores::new(1, 2, 3, 4, 5, 6);
         assert_eq!(scores.strength, 1);
         assert_eq!(scores.dexterity, 2);
@@ -99,7 +101,7 @@ mod tests {
     }
     
     #[test]
-    fn stats_from_default() {
+    fn ability_scores_from_default() {
         let scores = AbilityScores::from_defaults();
         assert_eq!(scores.strength, 10);
         assert_eq!(scores.dexterity, 10);
@@ -108,4 +110,16 @@ mod tests {
         assert_eq!(scores.wisdom, 10);
         assert_eq!(scores.charisma, 10);
     }
+    #[test]
+    fn ability_scores_get() {
+        let scores = AbilityScores::new(1, 2, 3, 4, 5, 6);
+
+        assert_eq!(scores.get_ability_score(Ability::Strength), scores.strength);
+        assert_eq!(scores.get_ability_score(Ability::Dexterity), scores.dexterity);
+        assert_eq!(scores.get_ability_score(Ability::Constitution), scores.constitution);
+        assert_eq!(scores.get_ability_score(Ability::Intelligence), scores.intelligence);
+        assert_eq!(scores.get_ability_score(Ability::Wisdom), scores.wisdom);
+        assert_eq!(scores.get_ability_score(Ability::Charisma), scores.charisma);
+    }
+
 }

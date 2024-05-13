@@ -26,7 +26,7 @@ impl Engine {
     }
 
     pub fn new_entity_with_abilities(&mut self, name: &str, abilities: AbilityScores) -> &Entity {
-        let entity = Entity::from_attributes(String::from(name), abilities);
+        let entity = Entity::from_ability_scores(String::from(name), abilities);
         let uuid = entity.get_uuid();
         self.entities.insert(uuid, entity);
         

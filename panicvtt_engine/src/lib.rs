@@ -17,7 +17,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn test_version() {
         let version = version();
         assert_eq!(version, version::VERSION);
     }
