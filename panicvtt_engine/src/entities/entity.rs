@@ -1,14 +1,19 @@
 use std::fmt::Display;
 
+use enum_map::{enum_map, EnumMap};
 use uuid::Uuid;
 
-use super::abilities::{Ability, AbilityScoreIntType, AbilityScores};
+use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, skills::{Skill, SkillAttributes, SkillModifierIntType}};
+
+/// !TODO proficiency bonus comes next - keep it static for now 
+const TODO_PROFICIENCY_BONUS: u8 = 2;
 
 /// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
 pub struct Entity {
     uuid: Uuid,
     name: String, 
     abilities: AbilityScores,
+    skills: EnumMap<Skill, SkillAttributes>,
 }
 
 impl Entity {
@@ -20,7 +25,27 @@ impl Entity {
         Self {
             uuid: Uuid::now_v7(),
             name, 
-            abilities
+            abilities, 
+            skills: enum_map! {
+                Skill::Acrobatics => SkillAttributes::Normal,
+                Skill::AnimalHandling => SkillAttributes::Normal,
+                Skill::Arcana => SkillAttributes::Normal,
+                Skill::Athletics => SkillAttributes::Normal,
+                Skill::Deception => SkillAttributes::Normal,
+                Skill::History => SkillAttributes::Normal,
+                Skill::Insight => SkillAttributes::Normal,
+                Skill::Intimidation => SkillAttributes::Normal,
+                Skill::Investigation => SkillAttributes::Normal,
+                Skill::Medicine => SkillAttributes::Normal,
+                Skill::Nature => SkillAttributes::Normal,
+                Skill::Perception => SkillAttributes::Normal,
+                Skill::Performance => SkillAttributes::Normal,
+                Skill::Persuasion => SkillAttributes::Normal,
+                Skill::Religion => SkillAttributes::Normal,
+                Skill::SlightOfHand => SkillAttributes::Normal,
+                Skill::Stealth => SkillAttributes::Normal,
+                Skill::Survival => SkillAttributes::Normal,
+            }
         }
     }
 
@@ -39,6 +64,39 @@ impl Entity {
     pub fn get_ability_scores(&self) -> &AbilityScores {
         &self.abilities
     }
+
+    pub fn get_ability_modifier(&self, ability: Ability) -> SkillModifierIntType {
+        self.abilities.get_ability_modifier(ability)
+    }
+
+    pub fn get_skill_score(&self, skill: Skill) -> SkillModifierIntType {
+        // Skill = ability[skill.ability] + (attribute.offset * proficiency)
+        let attr = &self.skills[skill];
+        let prof_multiplier = attr.get_proficiency_modifier();
+        let prof_offset = (prof_multiplier * (TODO_PROFICIENCY_BONUS as f64)).floor() as u8; 
+        
+        let ability_modifier = self.get_ability_modifier(skill.get_ability());
+
+        ability_modifier.checked_add(prof_offset as i8).unwrap()
+    }
+
+    pub fn get_skill_scores(&self) -> EnumMap<Skill, SkillModifierIntType> {
+        EnumMap::from_fn(|s| self.get_skill_score(s))
+    }
+
+    // !TODO this will change 
+    pub fn get_proficiency_bonus(&self) -> u8 {
+        TODO_PROFICIENCY_BONUS
+    }
+
+
+    pub fn set_skill_attribute(&mut self, skill: Skill, attribute: SkillAttributes) -> SkillAttributes {
+        // Change the attribute for this skill and return the old one 
+        let old_attribute = self.skills[skill];
+        self.skills[skill] = attribute;
+        old_attribute
+    }
+
 }
 
 impl Display for Entity {
@@ -51,6 +109,8 @@ impl Display for Entity {
 
 #[cfg(test)]
 mod tests {
+    use strum::IntoEnumIterator;
+
     use super::*;
 
     #[test]
@@ -92,5 +152,87 @@ mod tests {
         assert_eq!(entity.get_ability_score(Ability::Charisma), abilities.get_ability_score(Ability::Charisma));
        
         assert_eq!(*entity.get_ability_scores(), abilities);
+    }
+
+    #[test]
+    pub fn test_get_skill_score() {
+        let entity = Entity::new(String::new());
+        let map = entity.get_skill_scores();
+
+        for (skill, score) in map {
+            assert_eq!(entity.get_skill_score(skill), score);
+        }
+    }
+
+    #[test]
+    pub fn skill_scores_default() {
+        let entity = Entity::new(String::from("John Bonham"));
+
+        // Each score should be 0 - no proficiency or skill bonus
+        for skill in Skill::iter() {
+            assert_eq!(entity.get_skill_score(skill), 0);
+        }
+    }
+
+    #[test]
+    pub fn skill_scores_nondefault() {
+        // Test each skill within reasonable range 
+        let expected_modifiers = vec![
+            -5, -5, -4, -4, -3, -3, 
+            -2, -2, -1, -1,  0,  0, 
+             1,  1,  2,  2,  3,  3,
+             4,  4,  5,  5,  6,  6, 
+             7,  7,  8,  8,  9,  9,
+            10,
+        ];
+        
+        for i in 0..31 {
+            let entity = Entity::from_ability_scores(String::from("Jimmy Page"), 
+                AbilityScores::new(i, i, i, i, i, i)
+            );
+            
+            for skill in Skill::iter() {
+                assert_eq!(entity.get_skill_score(skill), expected_modifiers[i as usize]);
+            }
+        }
+    }
+
+    #[test]
+    pub fn skill_scores_nondefault_attributes() {
+        let expected_modifiers = vec![
+            -5, -5, -4, -4, -3, -3, 
+            -2, -2, -1, -1,  0,  0, 
+            1,  1,  2,  2,  3,  3,
+            4,  4,  5,  5,  6,  6, 
+            7,  7,  8,  8,  9,  9,
+            10,
+        ];
+
+        for i in 0..31 {
+            let mut entity = Entity::from_ability_scores(String::from(""), 
+                AbilityScores::new(i, i, i, i, i, i)
+            );
+        
+            let mut j = 0;
+            
+            let bonus_normal = 0; 
+            let bonus_halfprof = entity.get_proficiency_bonus() / 2;
+            let bonus_prof = entity.get_proficiency_bonus();
+            let bonus_exp = entity.get_proficiency_bonus() * 2;
+            let bonuses = vec![bonus_normal, bonus_halfprof, bonus_prof, bonus_exp]; 
+
+            // Order: Normal, HalfProficient, Proficient, Expertise 
+            for attr in SkillAttributes::iter() {
+                for skill in Skill::iter() {
+                    entity.set_skill_attribute(skill, attr);
+
+                    let bonus = bonuses.get(j).unwrap();
+                    let expected = expected_modifiers[i as usize] + *bonus as i8;
+                    assert_eq!(entity.get_skill_score(skill), expected);
+                } 
+                
+                j += 1;
+            }
+        }
     }
 }

@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use super::skills::SkillModifierIntType;
+
 pub type AbilityScoreIntType = u8;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -33,6 +35,20 @@ impl AbilityScores {
             Ability::Wisdom => self.wisdom,
             Ability::Charisma => self.charisma,
         };
+    }
+
+    pub fn get_ability_modifier(&self, ability: Ability) -> SkillModifierIntType {
+        let score = match ability {
+            Ability::Strength => self.strength,
+            Ability::Dexterity => self.dexterity,
+            Ability::Constitution => self.constitution,
+            Ability::Intelligence => self.intelligence,
+            Ability::Wisdom => self.wisdom,
+            Ability::Charisma => self.charisma,
+        };
+
+        // Max ability score possible is 30, so this won't panic
+        ((score as f64 - 10f64) / 2f64).floor() as SkillModifierIntType
     }
 }
 
