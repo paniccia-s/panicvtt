@@ -265,4 +265,5 @@ mod tests {
             assert_eq!(entity.get_proficiency_bonus(), *expected.get((i - 1) as usize).unwrap());
         }
     }
+
 }
