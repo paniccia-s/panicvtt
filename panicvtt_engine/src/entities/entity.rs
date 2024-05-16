@@ -5,13 +5,11 @@ use uuid::Uuid;
 
 use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, skills::{Skill, SkillAttributes, SkillModifierIntType}};
 
-/// !TODO proficiency bonus comes next - keep it static for now 
-const TODO_PROFICIENCY_BONUS: u8 = 2;
-
 /// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
 pub struct Entity {
     uuid: Uuid,
     name: String, 
+    level: u8,
     abilities: AbilityScores,
     skills: EnumMap<Skill, SkillAttributes>,
 }
@@ -25,6 +23,7 @@ impl Entity {
         Self {
             uuid: Uuid::now_v7(),
             name, 
+            level: 1,
             abilities, 
             skills: enum_map! {
                 Skill::Acrobatics => SkillAttributes::Normal,
@@ -49,12 +48,23 @@ impl Entity {
         }
     }
 
+    // !TODO this function will probably not exist for long 
+    pub fn from_level(name: String, level: u8) -> Self {
+        let mut s = Self::new(name);
+        s.level = level; 
+        s
+    }
+
     pub fn get_name(&self) -> &str {
         &self.name
     }
 
     pub fn get_uuid(&self) -> u128 {
         self.uuid.as_u128()
+    }
+
+    pub fn get_level(&self) -> u8 {
+        self.level
     }
 
     pub fn get_ability_score(&self, ability: Ability) -> AbilityScoreIntType {
@@ -73,7 +83,7 @@ impl Entity {
         // Skill = ability[skill.ability] + (attribute.offset * proficiency)
         let attr = &self.skills[skill];
         let prof_multiplier = attr.get_proficiency_modifier();
-        let prof_offset = (prof_multiplier * (TODO_PROFICIENCY_BONUS as f64)).floor() as u8; 
+        let prof_offset = (prof_multiplier * (self.get_proficiency_bonus() as f64)).floor() as u8; 
         
         let ability_modifier = self.get_ability_modifier(skill.get_ability());
 
@@ -86,7 +96,8 @@ impl Entity {
 
     // !TODO this will change 
     pub fn get_proficiency_bonus(&self) -> u8 {
-        TODO_PROFICIENCY_BONUS
+        // prof = ((level - 1) / 4) + 2 
+        ((self.level - 1) / 4) + 2
     }
 
 
@@ -152,6 +163,9 @@ mod tests {
         assert_eq!(entity.get_ability_score(Ability::Charisma), abilities.get_ability_score(Ability::Charisma));
        
         assert_eq!(*entity.get_ability_scores(), abilities);
+
+        let entity = Entity::from_level(String::from(name_raw), 15);
+        assert_eq!(entity.get_level(), 15);
     }
 
     #[test]
@@ -233,6 +247,22 @@ mod tests {
                 
                 j += 1;
             }
+        }
+    }
+
+    #[test]
+    pub fn proficiency_bonus() {
+        let expected = vec![
+            2, 2, 2, 2, 
+            3, 3, 3, 3, 
+            4, 4, 4, 4, 
+            5, 5, 5, 5, 
+            6, 6, 6, 6, 
+        ]; 
+
+        for i in 1..21 {
+            let entity = Entity::from_level(String::new(), i);
+            assert_eq!(entity.get_proficiency_bonus(), *expected.get((i - 1) as usize).unwrap());
         }
     }
 }
