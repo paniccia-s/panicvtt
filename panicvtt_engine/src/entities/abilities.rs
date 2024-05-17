@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 use super::skills::SkillModifierIntType;
 
@@ -27,14 +27,14 @@ impl AbilityScores {
     }
 
     pub fn get_ability_score(&self, ability: Ability) -> AbilityScoreIntType {
-        return match ability {
+        match ability {
             Ability::Strength => self.strength,
             Ability::Dexterity => self.dexterity,
             Ability::Constitution => self.constitution,
             Ability::Intelligence => self.intelligence,
             Ability::Wisdom => self.wisdom,
             Ability::Charisma => self.charisma,
-        };
+        }
     }
 
     pub fn get_ability_modifier(&self, ability: Ability) -> SkillModifierIntType {
@@ -74,16 +74,18 @@ pub enum Ability {
     Charisma,
 }
 
-impl Ability { 
-    pub fn from_str(val: &str) -> Option<Ability> {
-        match val {
-            "STR" => Some(Ability::Strength), 
-            "DEX" => Some(Ability::Dexterity), 
-            "CON" => Some(Ability::Constitution), 
-            "INT" => Some(Ability::Intelligence), 
-            "WIS" => Some(Ability::Wisdom), 
-            "CHA" => Some(Ability::Charisma), 
-            _ => None
+impl FromStr for Ability {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "STR" => Ok(Ability::Strength), 
+            "DEX" => Ok(Ability::Dexterity), 
+            "CON" => Ok(Ability::Constitution), 
+            "INT" => Ok(Ability::Intelligence), 
+            "WIS" => Ok(Ability::Wisdom), 
+            "CHA" => Ok(Ability::Charisma), 
+            _ => Err(())
         }
     }
 }

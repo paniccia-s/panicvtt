@@ -37,18 +37,18 @@ impl Display for ParseError {
 impl std::error::Error for ParseError {}
 
 impl ParseError {
-    fn new(all_tokens: &Vec<&str>, error_kind: ParseErrorKind) -> Self {
+    fn new(all_tokens: &[&str], error_kind: ParseErrorKind) -> Self {
         Self {
             all_tokens: all_tokens.iter().map(|s| { String::from(*s) }).collect(), 
             error_kind
         }
     }
 
-    pub(super) fn from_syntax_error(all_tokens: &Vec<&str>, bad_token: &str) -> Self {
+    pub(super) fn from_syntax_error(all_tokens: &[&str], bad_token: &str) -> Self {
         Self::new(all_tokens, ParseErrorKind::SyntaxError{ bad_token: String::from(bad_token) })
     } 
 
-    pub(super) fn from_wrong_num_args(all_tokens: &Vec<&str>, expected_num: u8, actual_num: u8) -> Self {
+    pub(super) fn from_wrong_num_args(all_tokens: &[&str], expected_num: u8, actual_num: u8) -> Self {
         Self::new(all_tokens, ParseErrorKind::WrongNumArgs { expected_num, actual_num })
     }
 }

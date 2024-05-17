@@ -1,7 +1,5 @@
 use std::sync::Mutex;
 
-use panicvtt_engine;
-
 use rocket::{form::Form, response::Redirect, State};
 use rocket_dyn_templates::{Template, context};
 
@@ -101,7 +99,7 @@ pub(super) fn parse_command(command: &str, state: &mut PanicState) -> Result<Str
                 COMMAND_GET_ENTITY_ABILITIES    => command_get_entity_abilities(&tokens, state),
                 _ => {
                     // Invalid token! 
-                    Err(ParseError::from_syntax_error(&tokens, *cmd))
+                    Err(ParseError::from_syntax_error(&tokens, cmd))
                 }
             } 
         }, 

@@ -34,15 +34,8 @@ impl Engine {
         self.entities.get(&uuid).expect("")
     }
 
-    pub fn delete_entity(&mut self, uuid: EntityID) -> Result<Entity, ()> {
-        match self.entities.remove(&uuid) {
-            Some(e) => {
-                Ok(e)       
-            }, 
-            None => {
-                Err(())
-            }
-        }
+    pub fn delete_entity(&mut self, uuid: EntityID) -> Option<Entity> {
+        self.entities.remove(&uuid) 
     }
 
     pub fn list_entities(&self) -> Vec<&Entity> {
@@ -55,5 +48,11 @@ impl Engine {
 
     pub fn get_ability_scores(&self, uuid: EntityID) -> Option<&AbilityScores> {
         Some(self.entities.get(&uuid)?.get_ability_scores())
+    }
+}
+
+impl Default for Engine {
+    fn default() -> Self {
+        Self::new()
     }
 }

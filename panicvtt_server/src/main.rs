@@ -25,7 +25,7 @@ fn define_initial_state(state_path: Option<&str>) -> (Vec<String>, PanicState) {
     
     if let Some(path) = state_path {
         // Open and read JSON file 
-        let mut file = File::open(path).expect(format!("Failed to open initial state file {}!", path).as_str());
+        let mut file = File::open(path).unwrap_or_else(|_| panic!("Failed to open initial state file {}!", path));
         
         let mut json_str = String::new();
         file.read_to_string(&mut json_str).expect("Failed to read initial state file!");

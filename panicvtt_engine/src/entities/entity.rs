@@ -191,7 +191,7 @@ mod tests {
     #[test]
     pub fn skill_scores_nondefault() {
         // Test each skill within reasonable range 
-        let expected_modifiers = vec![
+        let expected_modifiers = [
             -5, -5, -4, -4, -3, -3, 
             -2, -2, -1, -1,  0,  0, 
              1,  1,  2,  2,  3,  3,
@@ -213,7 +213,7 @@ mod tests {
 
     #[test]
     pub fn skill_scores_nondefault_attributes() {
-        let expected_modifiers = vec![
+        let expected_modifiers = [
             -5, -5, -4, -4, -3, -3, 
             -2, -2, -1, -1,  0,  0, 
             1,  1,  2,  2,  3,  3,
@@ -226,33 +226,29 @@ mod tests {
             let mut entity = Entity::from_ability_scores(String::from(""), 
                 AbilityScores::new(i, i, i, i, i, i)
             );
-        
-            let mut j = 0;
             
             let bonus_normal = 0; 
             let bonus_halfprof = entity.get_proficiency_bonus() / 2;
             let bonus_prof = entity.get_proficiency_bonus();
             let bonus_exp = entity.get_proficiency_bonus() * 2;
-            let bonuses = vec![bonus_normal, bonus_halfprof, bonus_prof, bonus_exp]; 
+            let bonuses = [bonus_normal, bonus_halfprof, bonus_prof, bonus_exp]; 
 
             // Order: Normal, HalfProficient, Proficient, Expertise 
-            for attr in SkillAttributes::iter() {
+            for (j, attr) in SkillAttributes::iter().enumerate() {
                 for skill in Skill::iter() {
                     entity.set_skill_attribute(skill, attr);
 
                     let bonus = bonuses.get(j).unwrap();
                     let expected = expected_modifiers[i as usize] + *bonus as i8;
                     assert_eq!(entity.get_skill_score(skill), expected);
-                } 
-                
-                j += 1;
+                }
             }
         }
     }
 
     #[test]
     pub fn proficiency_bonus() {
-        let expected = vec![
+        let expected = [
             2, 2, 2, 2, 
             3, 3, 3, 3, 
             4, 4, 4, 4, 

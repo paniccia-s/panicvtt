@@ -1,12 +1,11 @@
+use std::str::FromStr;
+
 use panicvtt_engine::entities::abilities::{Ability, AbilityScoreIntType, AbilityScores};
 
 use crate::{panic_state::PanicState, parse_error::ParseError};
 
 /// Parameters: <entity_name>
-pub(super) fn command_new_entity(
-    tokens: &Vec<&str>,
-    state: &mut PanicState,
-) -> Result<String, ParseError> {
+pub(super) fn command_new_entity(tokens: &[&str], state: &mut PanicState) -> Result<String, ParseError> {
     // Validate parameter count
     return if let Some(name) = tokens.get(1) {
         // !TODO do not allow name duplicates until we can resolve them through the webpage
@@ -40,7 +39,7 @@ pub(super) fn command_new_entity(
                         Ok(format!("Added entity: {}", entity_str))
                     } else {
                         let s = format!("{} {} {} {} {} {}", str_str, dex_str, con_str, int_str, wis_str, cha_str);
-                        Err(ParseError::from_syntax_error(&tokens, &s))
+                        Err(ParseError::from_syntax_error(tokens, &s))
                     }
                 } else { 
                     Err(ParseError::from_wrong_num_args(tokens, 7, tokens.len().try_into().unwrap_or(u8::MAX)))
@@ -48,7 +47,7 @@ pub(super) fn command_new_entity(
             }
             else {
                 // Create a new entity with this name and default abilities and register it locally
-                let entity = state.engine.new_entity(*name);
+                let entity = state.engine.new_entity(name);
                 let entity_str = entity.to_string();
 
                 state.entities.insert(String::from(entity.get_name()), entity.get_uuid());
@@ -62,10 +61,7 @@ pub(super) fn command_new_entity(
 }
 
 /// Parameters: <entity_name> (!TODO eventually EntityView?)
-pub(super) fn command_delete_entity(
-    tokens: &Vec<&str>,
-    state: &mut PanicState,
-) -> Result<String, ParseError> {
+pub(super) fn command_delete_entity(tokens: &[&str], state: &mut PanicState) -> Result<String, ParseError> {
     // Validate parameter count
     return if let Some(name) = tokens.get(1) {
         // Try to remove an entity with this name
@@ -73,8 +69,8 @@ pub(super) fn command_delete_entity(
             Some(entity) => {
                 // Remove it from the engine
                 match state.engine.delete_entity(entity) {
-                    Ok(e) => Ok(format!("Removed entity: {}", e.get_name())),
-                    Err(()) => Ok(format!(
+                    Some(e) => Ok(format!("Removed entity: {}", e.get_name())),
+                    None => Ok(format!(
                         "ERROR: entity with name {} exists locally but not within the engine!",
                         *name
                     )),
@@ -101,9 +97,7 @@ pub(super) fn command_delete_entity(
     };
 }
 
-pub(super) fn command_list_entities(
-    _tokens: &Vec<&str>,
-    state: &mut PanicState,
+pub(super) fn command_list_entities(_tokens: &[&str], state: &mut PanicState,
 ) -> Result<String, ParseError> {
     // Ignore any trailing tokens - this can't fail at the parser level
     Ok(state.engine.list_entities().iter()
@@ -112,15 +106,12 @@ pub(super) fn command_list_entities(
         .join(", "))
 }
 
-pub(super) fn command_get_entity_ability(
-    tokens: &Vec<&str>,
-    state: &mut PanicState,
-) -> Result<String, ParseError> {
+pub(super) fn command_get_entity_ability(tokens: &[&str], state: &mut PanicState) -> Result<String, ParseError> {
     return if let (Some(name), Some(ability_str)) = (tokens.get(1), tokens.get(2)) {
         // Try to match an Entity with this name
         if let Some(uuid) = state.entities.get(*name) {
             // See if the Ability is valid
-            if let Some(ability) = Ability::from_str(*ability_str) {
+            if let Ok(ability) = Ability::from_str(ability_str) {
                 // Go for it
                 let d = state.engine.get_ability_score(*uuid, ability).unwrap();
                 Ok(format!("{} {} = {}", *name, ability_str, d))
@@ -137,10 +128,7 @@ pub(super) fn command_get_entity_ability(
     };
 }
 
-pub(super) fn command_get_entity_abilities(
-    tokens: &Vec<&str>,
-    state: &mut PanicState,
-) -> Result<String, ParseError> {
+pub(super) fn command_get_entity_abilities(tokens: &[&str], state: &mut PanicState) -> Result<String, ParseError> {
     return if let Some(name) = tokens.get(1) {
         // Try to match an Entity with this name
         if let Some(uuid) = state.entities.get(*name) {
@@ -176,7 +164,7 @@ mod tests {
         assert!(insertion.is_ok());
         let res_str = insertion.unwrap(); 
         assert!(res_str.starts_with("Added entity: Entity David (uuid ..."));
-        assert!(res_str.ends_with(")")); 
+        assert!(res_str.ends_with(')')); 
 
         // Happy-path custom-attribute instantiation 
         let tokens = vec!["new_entity", "Rick", "1", "2", "3", "4", "5", "6"];
@@ -185,7 +173,7 @@ mod tests {
         assert!(insertion.is_ok());
         let res_str = insertion.unwrap();
         assert!(res_str.starts_with("Added entity: Entity Rick (uuid ..."));
-        assert!(res_str.ends_with(")"));
+        assert!(res_str.ends_with(')'));
     }
 
     #[test]
@@ -206,7 +194,7 @@ mod tests {
             ParseErrorKind::SyntaxError { bad_token: _ } => panic!()
         };
 
-        let new_tokens = vec!["1", "2", "3", "4", "5"];
+        let new_tokens = ["1", "2", "3", "4", "5"];
         tokens.push("Syd");
 
         for i in 0..5 {
@@ -247,7 +235,7 @@ mod tests {
     fn new_entity_non_u8_vals() {
         let mut state = PanicState::new(Engine::new());
 
-        let tokens_lists = vec![
+        let tokens_lists = [
             vec!["new_entity", "1", "STR", "10", "10", "10", "10", "10"],
             vec!["new_entity", "2", "10", "DEX", "10", "10", "10", "10"],
             vec!["new_entity", "3", "10", "10", "CON", "10", "10", "10"],
@@ -262,7 +250,7 @@ mod tests {
 
         for iter in tokens_lists.iter().zip(err_list) {
             let (tokens, err_token) = iter;
-            let insertion = command_new_entity(&tokens, &mut state);
+            let insertion = command_new_entity(tokens, &mut state);
             assert!(insertion.is_err()); 
 
             match insertion.unwrap_err().error_kind {
