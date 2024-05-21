@@ -3,7 +3,7 @@ use std::fmt::Display;
 use enum_map::{enum_map, EnumMap};
 use uuid::Uuid;
 
-use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, skills::{Skill, SkillAttributes, SkillModifierIntType}};
+use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores, SaveAttributes, SaveIntType}, skills::{Skill, SkillAttributes, SkillModifierIntType}};
 
 /// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
 pub struct Entity {
@@ -12,6 +12,7 @@ pub struct Entity {
     level: u8,
     abilities: AbilityScores,
     skills: EnumMap<Skill, SkillAttributes>,
+    saves: EnumMap<Ability, SaveAttributes>,
 }
 
 impl Entity {
@@ -44,6 +45,14 @@ impl Entity {
                 Skill::SlightOfHand => SkillAttributes::Normal,
                 Skill::Stealth => SkillAttributes::Normal,
                 Skill::Survival => SkillAttributes::Normal,
+            }, 
+            saves: enum_map! {
+                Ability::Strength => SaveAttributes::Normal, 
+                Ability::Dexterity => SaveAttributes::Normal, 
+                Ability::Constitution => SaveAttributes::Normal, 
+                Ability::Intelligence => SaveAttributes::Normal, 
+                Ability::Wisdom => SaveAttributes::Normal, 
+                Ability::Charisma => SaveAttributes::Normal, 
             }
         }
     }
@@ -90,13 +99,20 @@ impl Entity {
         ability_modifier.checked_add(prof_offset as i8).unwrap()
     }
 
+    pub fn get_save_score(&self, ability: Ability) -> SaveIntType {
+        // Save = ability[skill.ability] + proficiency
+        let ab_offset = self.get_ability_modifier(ability);
+        let proficiency = self.saves[ability] as SaveIntType;
+        let prof_offset = proficiency * self.get_proficiency_bonus() as SaveIntType;
+
+        ab_offset + prof_offset
+    }
+
     pub fn get_skill_scores(&self) -> EnumMap<Skill, SkillModifierIntType> {
         EnumMap::from_fn(|s| self.get_skill_score(s))
     }
 
-    // !TODO this will change 
     pub fn get_proficiency_bonus(&self) -> u8 {
-        // prof = ((level - 1) / 4) + 2 
         ((self.level - 1) / 4) + 2
     }
 
@@ -108,6 +124,12 @@ impl Entity {
         old_attribute
     }
 
+    pub fn set_save_attribute(&mut self, ability: Ability, attribute: SaveAttributes) -> SaveAttributes {
+        // Change the attribute for this ability and return the old one 
+        let old_attribute = self.saves[ability];
+        self.saves[ability] = attribute;
+        old_attribute
+    }
 }
 
 impl Display for Entity {
@@ -262,4 +284,64 @@ mod tests {
         }
     }
 
+    #[test]
+    pub fn saves_default() {
+        let entity = Entity::new(String::from("Moops"));
+
+        // Each score should be 0 - no proficiency bonus
+        for ability in Ability::iter() {
+            assert_eq!(entity.get_save_score(ability), 0);
+        }
+    }
+
+    #[test]
+    pub fn saves_nondefault() {
+        // Test each skill within reasonable range 
+        let expected_modifiers = [
+            -5, -5, -4, -4, -3, -3, 
+            -2, -2, -1, -1,  0,  0, 
+             1,  1,  2,  2,  3,  3,
+             4,  4,  5,  5,  6,  6, 
+             7,  7,  8,  8,  9,  9,
+            10,
+        ];
+        
+        for i in 0..31 {
+            let entity = Entity::from_ability_scores(String::from("Jimmy Page"), 
+                AbilityScores::new(i, i, i, i, i, i)
+            );
+            
+            for ability in Ability::iter() {
+                assert_eq!(entity.get_save_score(ability), expected_modifiers[i as usize]);
+            }
+        }
+    }
+
+    #[test]
+    pub fn saves_nondefault_attributes() {
+        // Test each skill within reasonable range 
+        let expected_modifiers = [
+            -5, -5, -4, -4, -3, -3, 
+            -2, -2, -1, -1,  0,  0, 
+             1,  1,  2,  2,  3,  3,
+             4,  4,  5,  5,  6,  6, 
+             7,  7,  8,  8,  9,  9,
+            10,
+        ];
+        
+        for i in 0..31 {
+            let mut entity = Entity::from_ability_scores(String::from("Jimmy Page"), 
+                AbilityScores::new(i, i, i, i, i, i)
+            );
+            
+            for ability in Ability::iter() {
+                entity.set_save_attribute(ability, SaveAttributes::Proficient);
+            }
+
+            let expected = expected_modifiers[i as usize] + entity.get_proficiency_bonus() as SaveIntType;
+            for ability in Ability::iter() {
+                assert_eq!(entity.get_save_score(ability), expected);
+            }
+        }
+    }
 }

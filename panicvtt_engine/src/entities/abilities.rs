@@ -1,5 +1,8 @@
 use std::{fmt::Display, str::FromStr};
 
+use enum_map::Enum;
+use strum::EnumIter;
+
 use super::skills::SkillModifierIntType;
 
 pub type AbilityScoreIntType = u8;
@@ -65,6 +68,7 @@ impl Display for AbilityScores {
     }
 }
 
+#[derive(Clone, Copy, Enum, EnumIter)]
 pub enum Ability {
     Strength, 
     Dexterity,
@@ -102,6 +106,16 @@ impl Display for Ability {
         })
     }
 }
+
+pub type SaveIntType = i8; 
+
+#[derive(Debug, Clone, Copy, EnumIter)]
+pub enum SaveAttributes {
+    Normal          = 0,
+    Proficient      = 1, 
+}
+
+
 
 #[cfg(test)]
 mod tests {
