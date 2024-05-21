@@ -1,69 +1,29 @@
 use std::fmt::Display;
 
-use enum_map::{enum_map, EnumMap};
+use derive_builder::Builder;
+use enum_map::EnumMap;
 use uuid::Uuid;
 
 use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores, SaveAttributes, SaveIntType}, skills::{Skill, SkillAttributes, SkillModifierIntType}};
 
 /// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
+#[derive(Builder)]
 pub struct Entity {
+    #[builder(default = "Uuid::now_v7()")]
     uuid: Uuid,
     name: String, 
+    #[builder(default = "1")]
     level: u8,
+    #[builder(default = "AbilityScores::from_defaults()")]
     abilities: AbilityScores,
+    #[builder(default = "EnumMap::from_fn(|_| SkillAttributes::Normal)")]
     skills: EnumMap<Skill, SkillAttributes>,
+    #[builder(default = "EnumMap::from_fn(|_| SaveAttributes::Normal)")]
     saves: EnumMap<Ability, SaveAttributes>,
 }
 
 impl Entity {
-    pub fn new(name: String) -> Entity {
-        Self::from_ability_scores(name, AbilityScores::from_defaults())
-    }
     
-    pub fn from_ability_scores(name: String, abilities: AbilityScores) -> Self {
-        Self {
-            uuid: Uuid::now_v7(),
-            name, 
-            level: 1,
-            abilities, 
-            skills: enum_map! {
-                Skill::Acrobatics => SkillAttributes::Normal,
-                Skill::AnimalHandling => SkillAttributes::Normal,
-                Skill::Arcana => SkillAttributes::Normal,
-                Skill::Athletics => SkillAttributes::Normal,
-                Skill::Deception => SkillAttributes::Normal,
-                Skill::History => SkillAttributes::Normal,
-                Skill::Insight => SkillAttributes::Normal,
-                Skill::Intimidation => SkillAttributes::Normal,
-                Skill::Investigation => SkillAttributes::Normal,
-                Skill::Medicine => SkillAttributes::Normal,
-                Skill::Nature => SkillAttributes::Normal,
-                Skill::Perception => SkillAttributes::Normal,
-                Skill::Performance => SkillAttributes::Normal,
-                Skill::Persuasion => SkillAttributes::Normal,
-                Skill::Religion => SkillAttributes::Normal,
-                Skill::SlightOfHand => SkillAttributes::Normal,
-                Skill::Stealth => SkillAttributes::Normal,
-                Skill::Survival => SkillAttributes::Normal,
-            }, 
-            saves: enum_map! {
-                Ability::Strength => SaveAttributes::Normal, 
-                Ability::Dexterity => SaveAttributes::Normal, 
-                Ability::Constitution => SaveAttributes::Normal, 
-                Ability::Intelligence => SaveAttributes::Normal, 
-                Ability::Wisdom => SaveAttributes::Normal, 
-                Ability::Charisma => SaveAttributes::Normal, 
-            }
-        }
-    }
-
-    // !TODO this function will probably not exist for long 
-    pub fn from_level(name: String, level: u8) -> Self {
-        let mut s = Self::new(name);
-        s.level = level; 
-        s
-    }
-
     pub fn get_name(&self) -> &str {
         &self.name
     }
@@ -150,29 +110,22 @@ mod tests {
     fn entity_new() {
         let name_raw = "David Gilmour";
         let name = String::from(name_raw);
-        let entity = Entity::new(name);
+        let entity = EntityBuilder::default().name(name).build().unwrap();
 
         assert_eq!(entity.name, name_raw);
         assert_eq!(entity.abilities, AbilityScores::from_defaults());
     }
 
     #[test]
-    fn entity_from_ability_scores() {
+    fn entity_getters() {
         let name_raw = "Rick Wright";
         let name = String::from(name_raw);
-        let abilities = AbilityScores::new(1, 2, 3, 4, 5, 6);
-        let entity = Entity::from_ability_scores(name, abilities.clone());
-
-        assert_eq!(entity.name, name_raw);
-        assert_eq!(entity.abilities, abilities);
-    }
-
-    #[test]
-    fn entity_getters() {
-        let name_raw = "Nick Mason";
-        let name = String::from(name_raw);
         let abilities = AbilityScores::new(20, 19, 18, 17, 16, 15);
-        let entity = Entity::from_ability_scores(name, abilities.clone());
+        let entity = EntityBuilder::default()
+            .name(name)
+            .abilities(abilities.clone())
+            .level(15)
+            .build().unwrap();
 
         assert_eq!(entity.get_name(), entity.name);
         assert_eq!(entity.get_uuid(), entity.uuid.as_u128());
@@ -186,13 +139,14 @@ mod tests {
        
         assert_eq!(*entity.get_ability_scores(), abilities);
 
-        let entity = Entity::from_level(String::from(name_raw), 15);
         assert_eq!(entity.get_level(), 15);
     }
 
     #[test]
     pub fn test_get_skill_score() {
-        let entity = Entity::new(String::new());
+        let entity = EntityBuilder::default()
+        .name(String::new())
+        .build().unwrap();
         let map = entity.get_skill_scores();
 
         for (skill, score) in map {
@@ -202,7 +156,9 @@ mod tests {
 
     #[test]
     pub fn skill_scores_default() {
-        let entity = Entity::new(String::from("John Bonham"));
+        let entity = EntityBuilder::default()
+        .name(String::new())
+        .build().unwrap();
 
         // Each score should be 0 - no proficiency or skill bonus
         for skill in Skill::iter() {
@@ -223,9 +179,10 @@ mod tests {
         ];
         
         for i in 0..31 {
-            let entity = Entity::from_ability_scores(String::from("Jimmy Page"), 
-                AbilityScores::new(i, i, i, i, i, i)
-            );
+            let entity = EntityBuilder::default()
+                .name(String::new())
+                .abilities(AbilityScores::new(i, i, i, i, i, i))
+                .build().unwrap();
             
             for skill in Skill::iter() {
                 assert_eq!(entity.get_skill_score(skill), expected_modifiers[i as usize]);
@@ -245,9 +202,10 @@ mod tests {
         ];
 
         for i in 0..31 {
-            let mut entity = Entity::from_ability_scores(String::from(""), 
-                AbilityScores::new(i, i, i, i, i, i)
-            );
+            let mut entity = EntityBuilder::default()
+                .name(String::new())
+                .abilities(AbilityScores::new(i, i, i, i, i, i))
+                .build().unwrap();
             
             let bonus_normal = 0; 
             let bonus_halfprof = entity.get_proficiency_bonus() / 2;
@@ -279,14 +237,20 @@ mod tests {
         ]; 
 
         for i in 1..21 {
-            let entity = Entity::from_level(String::new(), i);
+            let entity = EntityBuilder::default()
+            .name(String::new())
+            .level(i)
+            .build().unwrap();
+
             assert_eq!(entity.get_proficiency_bonus(), *expected.get((i - 1) as usize).unwrap());
         }
     }
 
     #[test]
     pub fn saves_default() {
-        let entity = Entity::new(String::from("Moops"));
+        let entity = EntityBuilder::default()
+        .name(String::new())
+        .build().unwrap();
 
         // Each score should be 0 - no proficiency bonus
         for ability in Ability::iter() {
@@ -307,9 +271,10 @@ mod tests {
         ];
         
         for i in 0..31 {
-            let entity = Entity::from_ability_scores(String::from("Jimmy Page"), 
-                AbilityScores::new(i, i, i, i, i, i)
-            );
+            let entity = EntityBuilder::default()
+                .name(String::new())
+                .abilities(AbilityScores::new(i, i, i, i, i, i))
+                .build().unwrap();
             
             for ability in Ability::iter() {
                 assert_eq!(entity.get_save_score(ability), expected_modifiers[i as usize]);
@@ -330,9 +295,10 @@ mod tests {
         ];
         
         for i in 0..31 {
-            let mut entity = Entity::from_ability_scores(String::from("Jimmy Page"), 
-                AbilityScores::new(i, i, i, i, i, i)
-            );
+            let mut entity = EntityBuilder::default()
+                .name(String::new())
+                .abilities(AbilityScores::new(i, i, i, i, i, i))
+                .build().unwrap();
             
             for ability in Ability::iter() {
                 entity.set_save_attribute(ability, SaveAttributes::Proficient);
