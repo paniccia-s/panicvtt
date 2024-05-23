@@ -12,8 +12,19 @@ pub struct Entity {
     #[builder(default = "Uuid::now_v7()")]
     uuid: Uuid,
     name: String, 
+
+    #[builder(default = "0")]
+    hp: u16,
+    #[builder(default = "0")]
+    hp_max: u16, 
+    #[builder(default = "0")]
+    hp_temp: u16,
+
     #[builder(default = "1")]
     level: u8,
+    #[builder(default = "30")]
+    speed: u8,
+
     #[builder(default = "AbilityScores::from_defaults()")]
     abilities: AbilityScores,
     #[builder(default = "EnumMap::from_fn(|_| SkillAttributes::Normal)")]
@@ -32,8 +43,24 @@ impl Entity {
         self.uuid.as_u128()
     }
 
+    pub fn get_hp(&self) -> u16 {
+        self.hp
+    }
+
+    pub fn get_hp_max(&self) -> u16 {
+        self.hp_max
+    }
+
+    pub fn get_hp_temp(&self) -> u16 {
+        self.hp_temp
+    }
+
     pub fn get_level(&self) -> u8 {
         self.level
+    }
+
+    pub fn get_speed(&self) -> u8 {
+        self.speed
     }
 
     pub fn get_ability_score(&self, ability: Ability) -> AbilityScoreIntType {
@@ -123,12 +150,20 @@ mod tests {
         let abilities = AbilityScores::new(20, 19, 18, 17, 16, 15);
         let entity = EntityBuilder::default()
             .name(name)
-            .abilities(abilities.clone())
+            .hp(50)
+            .hp_max(75)
+            .hp_temp(3)
             .level(15)
+            .speed(45)
+            .abilities(abilities.clone())
             .build().unwrap();
 
         assert_eq!(entity.get_name(), entity.name);
         assert_eq!(entity.get_uuid(), entity.uuid.as_u128());
+
+        assert_eq!(entity.get_hp(), 50);
+        assert_eq!(entity.get_hp_max(), 75);
+        assert_eq!(entity.get_hp_temp(), 3);
 
         assert_eq!(entity.get_ability_score(Ability::Strength), abilities.get_ability_score(Ability::Strength));
         assert_eq!(entity.get_ability_score(Ability::Dexterity), abilities.get_ability_score(Ability::Dexterity));
@@ -139,6 +174,7 @@ mod tests {
        
         assert_eq!(*entity.get_ability_scores(), abilities);
 
+        assert_eq!(entity.get_speed(), 45);
         assert_eq!(entity.get_level(), 15);
     }
 
