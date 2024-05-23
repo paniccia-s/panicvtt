@@ -13,7 +13,7 @@ pub struct Entity {
     uuid: Uuid,
     name: String, 
 
-    #[builder(default = "0")]
+    #[builder(default = "self.hp_max.unwrap_or(0)")]
     hp: u16,
     #[builder(default = "0")]
     hp_max: u16, 

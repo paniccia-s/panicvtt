@@ -3,6 +3,7 @@ use engine::Engine;
 mod version;
 pub mod entities;
 pub mod engine;
+mod mechanics;
 
 pub fn version() -> &'static str {
     version::VERSION

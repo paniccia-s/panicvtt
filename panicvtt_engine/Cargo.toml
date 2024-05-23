@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 derive_builder = "0.20.0"
 enum-map = "2.7.3"
+rand = "0.8.5"
 
 [dependencies.strum]
 version = "0.26.2"
