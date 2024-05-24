@@ -1,7 +1,7 @@
-use rand::Rng;
+use rand::RngCore;
 
 #[repr(u8)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Dice {
     D100    = 100, 
     D20     = 20, 
@@ -12,42 +12,57 @@ pub enum Dice {
     D4      = 4
 }
 
-impl Dice {
-    pub fn roll(&self) -> u8 {
+#[cfg(test)]
+pub type Rng = rand::rngs::mock::StepRng;
+
+#[cfg(not(test))]
+pub type Rng = rand::rngs::StdRng;
+
+impl Dice { 
+    pub fn roll(&self, rng: &mut Rng) -> u8 {
         let upper = *self as u8;
-        rand::thread_rng().gen_range(1..=upper)
+        (rng.next_u32() as u8 % upper) + 1
     }
 }
 
 
-pub fn roll_nonstandard(lower: u8, upper: u8) -> u8 {
-    rand::thread_rng().gen_range(lower..=upper)
-}
+// pub fn roll_nonstandard(lower: u8, upper: u8) -> u8 {
+//     rand::thread_rng().gen_range(lower..=upper)
+// }
 
 #[cfg(test)]
 mod tests {
+    use rand::rngs::mock::StepRng;
+
     use super::*;
 
     #[test]
-    pub fn roll_bounds() {
+    pub fn roll() {
         let dice = [Dice::D100, Dice::D20, Dice::D12, Dice::D10, Dice::D8, Dice::D6, Dice::D4];
         for die in dice {
             let upper = die as u8;
-            for _ in 0..100000 {
-                // Roll and check bounds 
-                let roll = die.roll();
-                assert!(roll > 0 && roll <= upper);
+            let mut rng = StepRng::new(0, 5);
+
+            for i in 0..1000u64 {
+                // Expect to roll ((i * 5 % 255) % Dn) + 1 
+                let roll = die.roll(&mut rng);
+                let a = i * 5; 
+                let b = a as u8; 
+                let c = b % upper;
+                let d = c.wrapping_add(1); 
+                
+                assert_eq!(roll, d);
             }
         }
     }
 
-    #[test]
-    pub fn roll_nonstandard_bounds() {
-        for lower in 0..u8::MAX - 1 {
-            for upper in lower..u8::MAX {
-                let roll = roll_nonstandard(lower, upper);
-                assert!(roll >= lower && roll <= upper);
-            }
-        }
-    }
+    // #[test]
+    // pub fn roll_nonstandard_bounds() {
+    //     for lower in 0..u8::MAX - 1 {
+    //         for upper in lower..u8::MAX {
+    //             let roll = roll_nonstandard(lower, upper);
+    //             assert!(roll >= lower && roll <= upper);
+    //         }
+    //     }
+    // }
 }

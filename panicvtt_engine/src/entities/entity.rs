@@ -1,40 +1,62 @@
 use std::fmt::Display;
 
-use derive_builder::Builder;
 use enum_map::EnumMap;
 use uuid::Uuid;
 
-use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores, SaveAttributes, SaveIntType}, skills::{Skill, SkillAttributes, SkillModifierIntType}};
+use crate::mechanics::dice::{Dice, Rng};
+
+use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores, SaveAttributes, SaveIntType}, class::Class, skills::{Skill, SkillAttributes, SkillModifierIntType}};
 
 /// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
-#[derive(Builder)]
+//#[derive(Builder)]
 pub struct Entity {
-    #[builder(default = "Uuid::now_v7()")]
+    //#[builder(default = "Uuid::now_v7()")]
     uuid: Uuid,
     name: String, 
 
-    #[builder(default = "self.hp_max.unwrap_or(0)")]
+   // #[builder(default = "self.hp_max.unwrap_or(0)")]
     hp: u16,
-    #[builder(default = "0")]
+    //#[builder(default = "0")]
     hp_max: u16, 
-    #[builder(default = "0")]
+    //#[builder(default = "0")]
     hp_temp: u16,
 
-    #[builder(default = "1")]
+    //#[builder(default = "1")]
     level: u8,
-    #[builder(default = "30")]
+    //#[builder(default = "30")]
     speed: u8,
 
-    #[builder(default = "AbilityScores::from_defaults()")]
+    class: Class,
+
+    //#[builder(default = "AbilityScores::from_defaults()")]
     abilities: AbilityScores,
-    #[builder(default = "EnumMap::from_fn(|_| SkillAttributes::Normal)")]
+    //#[builder(default = "EnumMap::from_fn(|_| SkillAttributes::Normal)")]
     skills: EnumMap<Skill, SkillAttributes>,
-    #[builder(default = "EnumMap::from_fn(|_| SaveAttributes::Normal)")]
+    //#[builder(default = "EnumMap::from_fn(|_| SaveAttributes::Normal)")]
     saves: EnumMap<Ability, SaveAttributes>,
 }
 
 impl Entity {
-    
+
+    /// !TODO speed will eventually come from Race 
+    pub fn new(name: String, class: Class, abilities: AbilityScores, rng: &mut Rng, speed: u8) -> Self {
+        let hp = (class.get_hit_die().roll(rng) + abilities.get_ability_modifier(Ability::Constitution) as u8).into();
+
+        Self {
+            uuid: Uuid::now_v7(),
+            name, 
+            hp, 
+            hp_max: hp, 
+            hp_temp: 0,
+            level: 1, 
+            speed, 
+            class, 
+            abilities, 
+            skills: EnumMap::from_fn(|_| SkillAttributes::Normal),
+            saves: EnumMap::from_fn(|_| SaveAttributes::Normal)
+        }
+    }
+
     pub fn get_name(&self) -> &str {
         &self.name
     }
@@ -61,6 +83,10 @@ impl Entity {
 
     pub fn get_speed(&self) -> u8 {
         self.speed
+    }
+
+    pub fn get_class_name(&self) -> &str {
+        self.class.get_name()
     }
 
     pub fn get_ability_score(&self, ability: Ability) -> AbilityScoreIntType {
@@ -126,6 +152,11 @@ impl Display for Entity {
     }
 }
 
+// Hello future Sam: 
+// TODO: fix up all these tests. No longer using Builder here because there aren't any optional params anymore
+// (speed will come from Race and level will need to wait until we can level up (maybe add a #[cfg(test)] level setter?))
+// Once this is all fixed, need to add Race, then ways to serde Class, Race, and Entity. 
+// Hope the roadtrip was fun! 
 
 #[cfg(test)]
 mod tests {
@@ -135,9 +166,12 @@ mod tests {
 
     #[test]
     fn entity_new() {
+        let mut rng = Rng::new(0, 0);
+        let class = Class::new(String::new(), Dice::D8);
+
         let name_raw = "David Gilmour";
         let name = String::from(name_raw);
-        let entity = EntityBuilder::default().name(name).build().unwrap();
+        let entity = Entity::new(name, class, AbilityScores::from_defaults(), &mut rng, 30);
 
         assert_eq!(entity.name, name_raw);
         assert_eq!(entity.abilities, AbilityScores::from_defaults());
