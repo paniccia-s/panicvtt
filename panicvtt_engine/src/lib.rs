@@ -9,8 +9,18 @@ pub fn version() -> &'static str {
     version::VERSION
 }
 
+#[cfg(test)]
 pub fn initialize() -> Engine {
-    Engine::new()
+    use rand::rngs::mock::StepRng;
+
+    Engine::new(StepRng::new(0, 1))
+}
+
+#[cfg(not(test))]
+pub fn initialize() -> Engine {
+    use rand::{rngs::StdRng, SeedableRng};
+
+    Engine::new(StdRng::from_entropy())
 }
 
 #[cfg(test)]

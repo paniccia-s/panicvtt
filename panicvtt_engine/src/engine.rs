@@ -1,25 +1,25 @@
 use std::collections::HashMap;
 
-use crate::entities::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, entity::{Entity, EntityBuilder}};
+use crate::{entities::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, class::Class, entity::Entity}, mechanics::dice::{Dice, Rng}};
 
 /// The token by which to uniquely identify Entities within the engine.
 type EntityID = u128;
 
 pub struct Engine {
     entities: HashMap<EntityID, Entity>,    
+    rng: Rng,
 }
 
 impl Engine {
-    pub fn new() -> Self {
+    pub fn new(rng: Rng) -> Self {
         Self {
             entities: HashMap::new(),
+            rng
         }
     }
 
-    pub fn new_entity(&mut self, name: &str) -> &Entity {
-        let entity = EntityBuilder::default()
-            .name(String::from(name))
-            .build().unwrap();
+    pub fn new_entity(&mut self, name: &str) -> &Entity { 
+        let entity = Entity::new(String::from(name), Class::new(String::from("Class Name"), Dice::D12), AbilityScores::from_defaults(), &mut self.rng, 30);
         let uuid = entity.get_uuid();
         self.entities.insert(uuid, entity);
 
@@ -28,10 +28,8 @@ impl Engine {
     }
 
     pub fn new_entity_with_abilities(&mut self, name: &str, abilities: AbilityScores) -> &Entity {
-        let entity = EntityBuilder::default()
-            .name(String::from(name))
-            .abilities(abilities)
-            .build().unwrap(); // Entity::from_ability_scores(String::from(name), abilities);
+        let entity = Entity::new(String::from(name), Class::new(String::from("Class Name"), Dice::D12), abilities, &mut self.rng, 30);
+        
         let uuid = entity.get_uuid();
         self.entities.insert(uuid, entity);
         
@@ -53,11 +51,5 @@ impl Engine {
 
     pub fn get_ability_scores(&self, uuid: EntityID) -> Option<&AbilityScores> {
         Some(self.entities.get(&uuid)?.get_ability_scores())
-    }
-}
-
-impl Default for Engine {
-    fn default() -> Self {
-        Self::new()
     }
 }
