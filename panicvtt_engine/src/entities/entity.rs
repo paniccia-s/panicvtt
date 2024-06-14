@@ -5,41 +5,31 @@ use uuid::Uuid;
 
 use crate::mechanics::dice::Rng;
 
-use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores, SaveAttributes, SaveIntType}, class::Class, skills::{Skill, SkillAttributes, SkillModifierIntType}};
+use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores, SaveAttributes, SaveIntType}, class::Class, race::Race, skills::{Skill, SkillAttributes, SkillModifierIntType}};
 
 /// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
 //#[derive(Builder)]
 pub struct Entity {
-    //#[builder(default = "Uuid::now_v7()")]
     uuid: Uuid,
     name: String, 
 
-   // #[builder(default = "self.hp_max.unwrap_or(0)")]
     hp: u16,
-    //#[builder(default = "0")]
     hp_max: u16, 
-    //#[builder(default = "0")]
     hp_temp: u16,
 
-    //#[builder(default = "1")]
     level: u8,
-    //#[builder(default = "30")]
-    speed: u8,
 
     class: Class,
+    race: Race,
 
-    //#[builder(default = "AbilityScores::from_defaults()")]
     abilities: AbilityScores,
-    //#[builder(default = "EnumMap::from_fn(|_| SkillAttributes::Normal)")]
     skills: EnumMap<Skill, SkillAttributes>,
-    //#[builder(default = "EnumMap::from_fn(|_| SaveAttributes::Normal)")]
     saves: EnumMap<Ability, SaveAttributes>,
 }
 
 impl Entity {
 
-    /// !TODO speed will eventually come from Race 
-    pub fn new(name: String, class: Class, abilities: AbilityScores, rng: &mut Rng, speed: u8) -> Self {
+    pub fn new(name: String, class: Class, race: Race, abilities: AbilityScores, rng: &mut Rng) -> Self {
         // Start with HP and level at 0, then level up once to not repeat leveling code 
         let mut s = Self {
             uuid: Uuid::now_v7(),
@@ -48,7 +38,7 @@ impl Entity {
             hp_max: 0, 
             hp_temp: 0,
             level: 0, 
-            speed, 
+            race, 
             class, 
             abilities, 
             skills: EnumMap::from_fn(|_| SkillAttributes::Normal),
@@ -84,7 +74,7 @@ impl Entity {
     }
 
     pub fn get_speed(&self) -> u8 {
-        self.speed
+        self.race.get_speed()
     }
 
     pub fn get_class_name(&self) -> &str {
@@ -189,10 +179,11 @@ mod tests {
     fn entity_new() {
         let mut rng = Rng::new(0, 0);
         let class = Class::new(String::new(), Dice::D8);
+        let race = Race::new(String::new(), 30);
 
         let name_raw = "David Gilmour";
         let name = String::from(name_raw);
-        let entity = Entity::new(name, class, AbilityScores::from_defaults(), &mut rng, 30);
+        let entity = Entity::new(name, class, race, AbilityScores::from_defaults(), &mut rng);
 
         assert_eq!(entity.name, name_raw);
         assert_eq!(entity.abilities, AbilityScores::from_defaults());
@@ -204,8 +195,10 @@ mod tests {
         let name = String::from(name_raw);
         let abilities = AbilityScores::new(20, 19, 18, 17, 16, 15);
         let class = Class::new(String::from("Class Name"), Dice::D12);
+        let race = Race::new(String::new(), 45);
         let mut rng = StepRng::new(5, 1);
-        let entity = Entity::new(name, class, abilities.clone(), &mut rng, 45);
+
+        let entity = Entity::new(name, class, race, abilities.clone(), &mut rng);
 
         assert_eq!(entity.get_name(), entity.name);
         assert_eq!(entity.get_uuid(), entity.uuid.as_u128());
@@ -231,8 +224,9 @@ mod tests {
     #[test]
     pub fn test_get_skill_score() {
         let class = Class::new(String::from("Class Name"), Dice::D12);
+        let race = Race::new(String::new(), 30);
         let mut rng = StepRng::new(5, 1);
-        let entity = Entity::new(String::new(), class, AbilityScores::from_defaults(), &mut rng, 30);
+        let entity = Entity::new(String::new(), class, race, AbilityScores::from_defaults(), &mut rng);
         let map = entity.get_skill_scores();
 
         for (skill, score) in map {
@@ -243,8 +237,9 @@ mod tests {
     #[test]
     pub fn skill_scores_default() {
         let class = Class::new(String::from("Class Name"), Dice::D12);
+        let race = Race::new(String::new(), 30);
         let mut rng = StepRng::new(5, 1);
-        let entity = Entity::new(String::new(), class, AbilityScores::from_defaults(), &mut rng, 30);
+        let entity = Entity::new(String::new(), class, race, AbilityScores::from_defaults(), &mut rng);
         
         // Each score should be 0 - no proficiency or skill bonus
         for skill in Skill::iter() {
@@ -266,9 +261,10 @@ mod tests {
         
         for i in 0..31 {
             let class = Class::new(String::from("Class Name"), Dice::D12);
+            let race = Race::new(String::new(), 30);
             let mut rng = StepRng::new(5, 1);
-            let entity = Entity::new(String::new(), class, 
-                AbilityScores::new(i, i, i, i, i, i), &mut rng, 30);
+            let entity = Entity::new(String::new(), class, race,
+                AbilityScores::new(i, i, i, i, i, i), &mut rng);
                         
             for skill in Skill::iter() {
                 assert_eq!(entity.get_skill_score(skill), expected_modifiers[i as usize]);
@@ -289,9 +285,10 @@ mod tests {
 
         for i in 0..31 {
             let class = Class::new(String::from("Class Name"), Dice::D12);
+            let race = Race::new(String::new(), 30);
             let mut rng = StepRng::new(5, 1);
-            let mut entity = Entity::new(String::new(), class, 
-                AbilityScores::new(i, i, i, i, i, i), &mut rng, 30);
+            let mut entity = Entity::new(String::new(), class, race,
+                AbilityScores::new(i, i, i, i, i, i), &mut rng);
             
             let bonus_normal = 0; 
             let bonus_halfprof = entity.get_proficiency_bonus() / 2;
@@ -324,8 +321,9 @@ mod tests {
 
         for i in 1..21 {
             let class = Class::new(String::from("Class Name"), Dice::D12);
+            let race = Race::new(String::new(), 30);
             let mut rng = StepRng::new(5, 1);
-            let mut entity = Entity::new(String::new(), class, AbilityScores::from_defaults(), &mut rng, 30);
+            let mut entity = Entity::new(String::new(), class, race, AbilityScores::from_defaults(), &mut rng);
              
             // Level up i - 1 times 
             for _ in 0..i-1 {
@@ -339,8 +337,9 @@ mod tests {
     #[test]
     pub fn saves_default() {
         let class = Class::new(String::from("Class Name"), Dice::D12);
+        let race = Race::new(String::new(), 30);
         let mut rng = StepRng::new(5, 1);
-        let entity = Entity::new(String::new(), class, AbilityScores::from_defaults(), &mut rng, 30);
+        let entity = Entity::new(String::new(), class, race, AbilityScores::from_defaults(), &mut rng);
          
 
         // Each score should be 0 - no proficiency bonus
@@ -363,9 +362,10 @@ mod tests {
         
         for i in 0..31 {
             let class = Class::new(String::from("Class Name"), Dice::D12);
+            let race = Race::new(String::new(), 30);
             let mut rng = StepRng::new(5, 1);
-            let entity = Entity::new(String::new(), class, 
-                AbilityScores::new(i, i, i, i, i, i), &mut rng, 30);
+            let entity = Entity::new(String::new(), class, race,
+                AbilityScores::new(i, i, i, i, i, i), &mut rng);
             
             for ability in Ability::iter() {
                 assert_eq!(entity.get_save_score(ability), expected_modifiers[i as usize]);
@@ -387,9 +387,10 @@ mod tests {
         
         for i in 0..31 {
             let class = Class::new(String::from("Class Name"), Dice::D12);
+            let race = Race::new(String::new(), 30);
             let mut rng = StepRng::new(5, 1);
-            let mut entity = Entity::new(String::new(), class, 
-                AbilityScores::new(i, i, i, i, i, i), &mut rng, 30);
+            let mut entity = Entity::new(String::new(), class, race,
+                AbilityScores::new(i, i, i, i, i, i), &mut rng);
             
             for ability in Ability::iter() {
                 entity.set_save_attribute(ability, SaveAttributes::Proficient);

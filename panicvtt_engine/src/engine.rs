@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{entities::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, class::Class, entity::Entity}, mechanics::dice::{Dice, Rng}};
+use crate::{entities::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, class::Class, entity::Entity, race::Race}, mechanics::dice::{Dice, Rng}};
 
 /// The token by which to uniquely identify Entities within the engine.
 type EntityID = u128;
@@ -19,7 +19,8 @@ impl Engine {
     }
 
     pub fn new_entity(&mut self, name: &str) -> &Entity { 
-        let entity = Entity::new(String::from(name), Class::new(String::from("Class Name"), Dice::D12), AbilityScores::from_defaults(), &mut self.rng, 30);
+        let entity = Entity::new(String::from(name), Class::new(String::from("Class Name"), Dice::D12), 
+            Race::new(String::from("Race Name"), 30), AbilityScores::from_defaults(), &mut self.rng);
         let uuid = entity.get_uuid();
         self.entities.insert(uuid, entity);
 
@@ -28,7 +29,8 @@ impl Engine {
     }
 
     pub fn new_entity_with_abilities(&mut self, name: &str, abilities: AbilityScores) -> &Entity {
-        let entity = Entity::new(String::from(name), Class::new(String::from("Class Name"), Dice::D12), abilities, &mut self.rng, 30);
+        let entity = Entity::new(String::from(name), Class::new(String::from("Class Name"), Dice::D12),
+            Race::new(String::from("Race Name"), 30), abilities, &mut self.rng);
         
         let uuid = entity.get_uuid();
         self.entities.insert(uuid, entity);
