@@ -402,4 +402,29 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    pub fn level_up() { 
+        let class = Class::new(String::from("Class Name"), Dice::D12);
+        let race = Race::new(String::new(), 30);
+        let mut rng = StepRng::new(1, 1);
+        let mut entity = Entity::new(String::new(), class, race, AbilityScores::new(10, 10, 14, 10, 10, 10), &mut rng);
+
+        // Check initial condition 
+        assert_eq!(entity.get_level(), 1);
+        assert_eq!(entity.get_hp(), (entity.abilities.get_ability_modifier(Ability::Constitution) + 1 + 1) as u16); 
+        assert_eq!(entity.get_hp_max(), entity.get_hp());
+        assert_eq!(entity.get_hp_temp(), 0);
+
+        // Level up several times
+        let mut hp = entity.get_hp();
+        for i in 2..=20 {
+            // Roll should increment per steprng 
+            let roll = entity.level_up(&mut rng);
+            assert_eq!(roll, ((i % entity.class.get_hit_die().max()) + 1).into());    // Add 1 for 1-indexing the roll
+            
+            hp += roll + (entity.abilities.get_ability_modifier(Ability::Constitution) as u16); 
+            assert_eq!(entity.get_hp(), hp);
+        }
+    }
 }

@@ -23,6 +23,10 @@ impl Dice {
         let upper = *self as u8;
         (rng.next_u32() as u8 % upper) + 1
     }
+
+    pub fn max(&self) -> u8 {
+        *self as u8
+    }
 }
 
 
@@ -32,6 +36,8 @@ impl Dice {
 
 #[cfg(test)]
 mod tests {
+    use std::iter::zip;
+
     use rand::rngs::mock::StepRng;
 
     use super::*;
@@ -53,6 +59,16 @@ mod tests {
                 
                 assert_eq!(roll, d);
             }
+        }
+    }
+
+    #[test]
+    pub fn max() {
+        let expected = [100, 20, 12, 10, 8, 6, 4];
+        let dice = [Dice::D100, Dice::D20, Dice::D12, Dice::D10, Dice::D8, Dice::D6, Dice::D4];
+
+        for (e, d) in zip(expected, dice) {
+            assert_eq!(d.max(), e);
         }
     }
 
