@@ -1,13 +1,15 @@
 use std::{fmt::Display, str::FromStr};
 
 use enum_map::Enum;
-use strum::EnumIter;
+use num_derive::FromPrimitive;
+use serde::{Deserialize, Serialize};
+use strum::{EnumCount, EnumIter};
 
 use super::skills::SkillModifierIntType;
 
 pub type AbilityScoreIntType = u8;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct AbilityScores {
     strength: AbilityScoreIntType,
     dexterity: AbilityScoreIntType,
@@ -68,7 +70,7 @@ impl Display for AbilityScores {
     }
 }
 
-#[derive(Clone, Copy, Enum, EnumIter)]
+#[derive(Clone, Copy, Enum, EnumIter, EnumCount, FromPrimitive)]
 pub enum Ability {
     Strength, 
     Dexterity,
@@ -76,6 +78,18 @@ pub enum Ability {
     Intelligence,
     Wisdom,
     Charisma,
+}
+
+impl From<Ability> for usize {
+    fn from(val: Ability) -> Self {
+        val as usize
+    }
+}
+
+impl From<usize> for Ability {
+    fn from(value: usize) -> Self {
+        num::FromPrimitive::from_usize(value).unwrap()
+    }
 }
 
 impl FromStr for Ability {
@@ -109,7 +123,7 @@ impl Display for Ability {
 
 pub type SaveIntType = i8; 
 
-#[derive(Debug, Clone, Copy, EnumIter)]
+#[derive(Debug, Clone, Copy, EnumIter, Serialize, Deserialize)]
 pub enum SaveAttributes {
     Normal          = 0,
     Proficient      = 1, 

@@ -4,6 +4,7 @@ mod version;
 pub mod entities;
 pub mod engine;
 mod mechanics;
+mod util;
 
 pub fn version() -> &'static str {
     version::VERSION

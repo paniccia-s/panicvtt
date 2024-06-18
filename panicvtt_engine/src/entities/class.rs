@@ -1,6 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 use crate::mechanics::dice::Dice;
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Class {
     name: String, 
     hit_die: Dice

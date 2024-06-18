@@ -1,7 +1,8 @@
 use rand::RngCore;
+use serde::{Deserialize, Serialize};
 
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Dice {
     D100    = 100, 
     D20     = 20, 

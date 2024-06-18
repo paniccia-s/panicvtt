@@ -1,12 +1,15 @@
-use enum_map::Enum;
-use strum::EnumIter;
+use enum_map::Enum; 
+
+use num_derive::FromPrimitive;
+use serde::{Deserialize, Serialize};
+use strum::{EnumCount, EnumIter};
 
 use super::abilities::Ability;
 
 pub type SkillModifierIntType = i8;
 
 #[repr(u8)]
-#[derive(Debug, Enum, EnumIter, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Debug, Enum, EnumIter, PartialEq, Eq, Hash, Clone, Copy, EnumCount, FromPrimitive)]
 pub enum Skill {
     Acrobatics      = 0, 
     AnimalHandling  = 1,
@@ -26,6 +29,18 @@ pub enum Skill {
     SlightOfHand    = 15, 
     Stealth         = 16, 
     Survival        = 17, 
+}
+
+impl From<Skill> for usize {
+    fn from(val: Skill) -> Self {
+        val as usize
+    }
+}
+
+impl From<usize> for Skill {
+    fn from(value: usize) -> Self {
+        num::FromPrimitive::from_usize(value).unwrap()
+    }
 }
 
 pub type SkillIntType = u8;
@@ -56,7 +71,7 @@ impl Skill {
 }
 
 
-#[derive(Debug, Clone, Copy, EnumIter)]
+#[derive(Debug, Clone, Copy, EnumIter, Serialize, Deserialize)]
 pub enum SkillAttributes {
     Normal          = 0, 
     HalfProficient  = 1,   

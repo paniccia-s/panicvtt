@@ -1,14 +1,14 @@
 use std::fmt::Display;
 
-use enum_map::EnumMap;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::mechanics::dice::Rng;
+use crate::{mechanics::dice::Rng, util::enum_map::EnumMap};
 
 use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores, SaveAttributes, SaveIntType}, class::Class, race::Race, skills::{Skill, SkillAttributes, SkillModifierIntType}};
 
 /// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
-//#[derive(Builder)]
+#[derive(Serialize, Deserialize)]
 pub struct Entity {
     uuid: Uuid,
     name: String, 
@@ -160,11 +160,6 @@ impl Display for Entity {
     }
 }
 
-// Hello future Sam: 
-// TODO: fix up all these tests. No longer using Builder here because there aren't any optional params anymore
-// (speed will come from Race and level will need to wait until we can level up (maybe add a #[cfg(test)] level setter?))
-// Once this is all fixed, need to add Race, then ways to serde Class, Race, and Entity. 
-// Hope the roadtrip was fun! 
 
 #[cfg(test)]
 mod tests {

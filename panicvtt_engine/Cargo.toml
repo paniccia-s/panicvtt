@@ -8,16 +8,24 @@ edition = "2021"
 [dependencies]
 derive_builder = "0.20.0"
 enum-map = "2.7.3"
+num = "0.4.3"
+num-derive = "0.4.2"
+num-traits = "0.2.19"
 rand = "0.8.5"
+serde_yaml = "0.9.34"
 
-[dependencies.strum]
-version = "0.26.2"
+[dependencies.serde]
+version = "1.0.203"
 features = [
     "derive"
 ]
 
+[dependencies.strum]
+version = "0.26.2"
+features = ["derive"]
+
 [dependencies.uuid]
 version = "1.8.0"
 features = [
-    "std", "v7"
+    "std", "v7", "serde"
 ]
