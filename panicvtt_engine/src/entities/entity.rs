@@ -422,4 +422,37 @@ mod tests {
             assert_eq!(entity.get_hp(), hp);
         }
     }
+
+    #[test]
+    pub fn serde() {
+        let class = Class::new(String::from("Class Name!😊"), Dice::D20);
+        let race = Race::new(String::new(), u8::MAX);
+        let mut rng = StepRng::new(0, 0);
+        let abilities = AbilityScores::new(0, 5, 10, 15, 20, 25);
+        let entity = Entity::new(String::from("Entity Named Finger:"), class, race, abilities, &mut rng);
+
+        // Serialize, then deserialize, and check the data 
+        let ser = serde_yaml::to_string(&entity).unwrap();
+        let de = serde_yaml::from_str::<Entity>(&ser).unwrap();
+
+        assert_eq!(de.uuid, entity.uuid);
+        assert_eq!(de.name, String::from("Entity Named Finger:"));
+
+        assert_eq!(de.hp, entity.hp);
+        assert_eq!(de.hp_max, entity.hp_max);
+        assert_eq!(de.hp_temp, entity.hp_temp);
+
+        assert_eq!(de.level, entity.level);
+
+        assert_eq!(de.class.get_name(), entity.class.get_name());
+        assert_eq!(de.class.get_hit_die(), entity.class.get_hit_die());
+
+        assert_eq!(de.race.get_name(), entity.race.get_name());
+        assert_eq!(de.race.get_speed(), entity.race.get_speed());
+
+        assert_eq!(de.abilities, entity.abilities);
+        
+        assert_eq!(de.skills, entity.skills);
+        assert_eq!(de.saves, entity.saves);
+    }
 }

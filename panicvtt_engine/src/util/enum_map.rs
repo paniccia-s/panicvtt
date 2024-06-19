@@ -3,7 +3,7 @@ use std::ops::{Index, IndexMut};
 use serde::{Deserialize, Serialize};
 use strum::{EnumCount, IntoEnumIterator};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Eq, PartialEq, Debug)]
 pub struct EnumMap<E, V> {
     map: Vec<V>, 
     _e: std::marker::PhantomData<E>

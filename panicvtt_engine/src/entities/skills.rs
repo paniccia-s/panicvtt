@@ -71,7 +71,7 @@ impl Skill {
 }
 
 
-#[derive(Debug, Clone, Copy, EnumIter, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, EnumIter, Serialize, Deserialize, Eq, PartialEq)]
 pub enum SkillAttributes {
     Normal          = 0, 
     HalfProficient  = 1,   

@@ -70,7 +70,7 @@ impl Display for AbilityScores {
     }
 }
 
-#[derive(Clone, Copy, Enum, EnumIter, EnumCount, FromPrimitive)]
+#[derive(Clone, Copy, Enum, EnumIter, EnumCount, FromPrimitive, Eq, PartialEq, Debug)]
 pub enum Ability {
     Strength, 
     Dexterity,
@@ -123,7 +123,7 @@ impl Display for Ability {
 
 pub type SaveIntType = i8; 
 
-#[derive(Debug, Clone, Copy, EnumIter, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, EnumIter, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SaveAttributes {
     Normal          = 0,
     Proficient      = 1, 
