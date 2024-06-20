@@ -1,27 +1,30 @@
+use std::path::Path;
+
 use engine::Engine;
 
-mod version;
+mod assets;
 pub mod entities;
 pub mod engine;
 mod mechanics;
 mod util;
+mod version;
 
 pub fn version() -> &'static str {
     version::VERSION
 }
 
 #[cfg(test)]
-pub fn initialize() -> Engine {
+pub fn initialize(asset_root: &Path) -> Engine {
     use rand::rngs::mock::StepRng;
 
-    Engine::new(StepRng::new(0, 1))
+    Engine::new(StepRng::new(0, 1), asset_root)
 }
 
 #[cfg(not(test))]
-pub fn initialize() -> Engine {
+pub fn initialize(asset_root: &Path) -> Engine {
     use rand::{rngs::StdRng, SeedableRng};
 
-    Engine::new(StdRng::from_entropy())
+    Engine::new(StdRng::from_entropy(), asset_root)
 }
 
 #[cfg(test)]

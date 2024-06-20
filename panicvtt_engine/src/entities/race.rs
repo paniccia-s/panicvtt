@@ -1,7 +1,11 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
+use crate::assets::asset::Asset;
 
 #[derive(Serialize, Deserialize)]
 pub struct Race {
+    uuid: Uuid,
     name: String, 
     speed: u8, 
 }
@@ -9,7 +13,9 @@ pub struct Race {
 impl Race {
     pub fn new(name: String, speed: u8) -> Self {
         Self {
-            name, speed
+            uuid: Uuid::now_v7(),
+            name, 
+            speed
         }
     }
 
@@ -19,6 +25,12 @@ impl Race {
 
     pub fn get_speed(&self) -> u8 {
         self.speed
+    }
+}
+
+impl Asset for Race {
+    fn get_uuid(&self) -> u128 {
+        self.uuid.as_u128()
     }
 }
 

@@ -1,19 +1,21 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path};
 
-use crate::{entities::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, class::Class, entity::Entity, race::Race}, mechanics::dice::{Dice, Rng}};
+use crate::{assets::asset_manager::AssetManager, entities::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, class::Class, entity::Entity, race::Race}, mechanics::dice::{Dice, Rng}};
 
 /// The token by which to uniquely identify Entities within the engine.
 type EntityID = u128;
 
 pub struct Engine {
     entities: HashMap<EntityID, Entity>,    
+    asset_manager: AssetManager,
     rng: Rng,
 }
 
 impl Engine {
-    pub fn new(rng: Rng) -> Self {
+    pub fn new(rng: Rng, asset_root: &Path) -> Self {
         Self {
             entities: HashMap::new(),
+            asset_manager: AssetManager::new(asset_root).unwrap(),  // For now, panic if something goes wrong
             rng
         }
     }

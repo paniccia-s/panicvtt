@@ -1,9 +1,11 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-use crate::mechanics::dice::Dice;
+use crate::{assets::asset::Asset, mechanics::dice::Dice};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Class {
+    uuid: Uuid,
     name: String, 
     hit_die: Dice
 }
@@ -12,7 +14,9 @@ impl Class {
 
     pub fn new(name: String, hit_die: Dice) -> Self {
         Self {
-            name, hit_die
+            uuid: Uuid::now_v7(),
+            name, 
+            hit_die
         }
     }
 
@@ -22,6 +26,12 @@ impl Class {
 
     pub fn get_hit_die(&self) -> Dice {
         self.hit_die
+    }
+}
+
+impl Asset for Class {
+    fn get_uuid(&self) -> u128 {
+        self.uuid.as_u128()
     }
 }
 
