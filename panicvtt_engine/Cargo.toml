@@ -13,6 +13,7 @@ num-derive = "0.4.2"
 num-traits = "0.2.19"
 rand = "0.8.5"
 serde_yaml = "0.9.34"
+tempdir = "0.3.7"
 
 [dependencies.serde]
 version = "1.0.203"

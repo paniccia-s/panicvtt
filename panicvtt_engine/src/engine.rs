@@ -5,13 +5,13 @@ use crate::{assets::asset_manager::AssetManager, entities::{abilities::{Ability,
 /// The token by which to uniquely identify Entities within the engine.
 type EntityID = u128;
 
-pub struct Engine {
-    entities: HashMap<EntityID, Entity>,    
+pub struct Engine<'e> {
+    entities: HashMap<EntityID, Entity<'e>>,    
     asset_manager: AssetManager,
     rng: Rng,
 }
 
-impl Engine {
+impl<'e> Engine<'e> {
     pub fn new(rng: Rng, asset_root: &Path) -> Self {
         Self {
             entities: HashMap::new(),
@@ -20,19 +20,28 @@ impl Engine {
         }
     }
 
-    pub fn new_entity(&mut self, name: &str) -> &Entity { 
-        let entity = Entity::new(String::from(name), Class::new(String::from("Class Name"), Dice::D12), 
-            Race::new(String::from("Race Name"), 30), AbilityScores::from_defaults(), &mut self.rng);
+    pub fn new_entity(&'e mut self, name: &str) -> &Entity { 
+        let entity = Entity::new(String::from(name), 
+            Class::new(String::from("Class Name"), Dice::D12), 
+            Race::new(String::from("Race Name"), 30), 
+            AbilityScores::from_defaults(), 
+            &self.asset_manager, 
+            &mut self.rng);
+        
         let uuid = entity.get_uuid();
         self.entities.insert(uuid, entity);
 
         // We just put this entity in, so this cannot fail 
-        self.entities.get(&uuid).expect("")
+        self.entities.get(&uuid).unwrap()
     }
 
-    pub fn new_entity_with_abilities(&mut self, name: &str, abilities: AbilityScores) -> &Entity {
-        let entity = Entity::new(String::from(name), Class::new(String::from("Class Name"), Dice::D12),
-            Race::new(String::from("Race Name"), 30), abilities, &mut self.rng);
+    pub fn new_entity_with_abilities(&'e mut self, name: &str, abilities: AbilityScores) -> &Entity {
+        let entity = Entity::new(String::from(name), 
+            Class::new(String::from("Class Name"), Dice::D12),
+            Race::new(String::from("Race Name"), 30), 
+            abilities, 
+            &self.asset_manager,
+            &mut self.rng);
         
         let uuid = entity.get_uuid();
         self.entities.insert(uuid, entity);

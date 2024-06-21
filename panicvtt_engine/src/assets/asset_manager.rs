@@ -4,7 +4,7 @@ use crate::entities::{class::Class, race::Race};
 
 use super::{asset::Asset, asset_serde::AssetSerde};
 
-pub(crate) struct AssetManager {
+pub struct AssetManager {
     classes: HashMap<u128, Class>,
     races: HashMap<u128, Race>
 }
@@ -64,7 +64,17 @@ impl AssetManager {
             races: races.unwrap_or_default(),
         })
     }
+
+    // Most tests don't need assets - no need to load anything in this case 
+    #[cfg(test)]
+    pub fn from_no_assets() -> Self {
+        Self {
+            classes: Default::default(), 
+            races: Default::default()
+        }
+    }
 }
+
 
 #[cfg(test)]
 pub mod tests {

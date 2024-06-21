@@ -3,15 +3,16 @@ use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{mechanics::dice::Rng, util::enum_map::EnumMap};
+use crate::{assets::asset_manager::AssetManager, mechanics::dice::Rng, util::enum_map::EnumMap};
 
 use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores, SaveAttributes, SaveIntType}, class::Class, race::Race, skills::{Skill, SkillAttributes, SkillModifierIntType}};
 
 /// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
-#[derive(Serialize, Deserialize)]
-pub struct Entity {
+// #[derive(Serialize, Deserialize)]
+pub struct Entity<'e> {
     uuid: Uuid,
-    name: String, 
+    name: String,
+    assets: &'e AssetManager,
 
     hp: u16,
     hp_max: u16, 
@@ -27,13 +28,33 @@ pub struct Entity {
     saves: EnumMap<Ability, SaveAttributes>,
 }
 
-impl Entity {
+#[derive(Serialize, Deserialize)]
+pub(crate) struct EntitySerde {
+    uuid: Uuid, 
+    name: String, 
 
-    pub fn new(name: String, class: Class, race: Race, abilities: AbilityScores, rng: &mut Rng) -> Self {
+    hp: u16, 
+    hp_max: u16,
+    hp_temp: u16,
+
+    level: u8,
+
+    class: Class,
+    race: Race,
+
+    abilities: AbilityScores,
+    skills: EnumMap<Skill, SkillAttributes>,
+    saves: EnumMap<Ability, SaveAttributes>,
+}
+
+impl<'e> Entity<'e> {
+
+    pub fn new(name: String, class: Class, race: Race, abilities: AbilityScores, assets: &'e AssetManager, rng: &mut Rng) -> Self {
         // Start with HP and level at 0, then level up once to not repeat leveling code 
         let mut s = Self {
             uuid: Uuid::now_v7(),
             name, 
+            assets,
             hp: 0, 
             hp_max: 0, 
             hp_temp: 0,
@@ -48,6 +69,40 @@ impl Entity {
         s.level_up(rng); 
         s
     }
+
+    pub(crate) fn from_serde(serde: EntitySerde, assets: &'e AssetManager) -> Self {
+        Self {
+            uuid: serde.uuid, 
+            name: serde.name, 
+            assets, 
+            hp: serde.hp, 
+            hp_max: serde.hp_max, 
+            hp_temp: serde.hp_temp,
+            level: serde.level, 
+            race: serde.race, 
+            class: serde.class, 
+            abilities: serde.abilities, 
+            skills: serde.skills, 
+            saves: serde.saves
+        }
+    }
+
+    pub(crate) fn to_serde(self) -> EntitySerde {
+        EntitySerde {
+            uuid: self.uuid, 
+            name: self.name, 
+            hp: self.hp, 
+            hp_max: self.hp_max, 
+            hp_temp: self.hp_temp,
+            level: self.level, 
+            race: self.race, 
+            class: self.class, 
+            abilities: self.abilities, 
+            skills: self.skills, 
+            saves: self.saves
+        }
+    }
+
 
     pub fn get_name(&self) -> &str {
         &self.name
@@ -153,20 +208,20 @@ impl Entity {
     }
 }
 
-impl Display for Entity {
+impl Display for Entity<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let uuid_str = self.uuid.as_u128().to_string();
         write!(f, "Entity {} (uuid ...{})", self.name, &uuid_str[uuid_str.len() - 6..])
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use rand::rngs::mock::StepRng;
     use strum::IntoEnumIterator;
+    use tempdir::TempDir;
 
-    use crate::mechanics::dice::Dice;
+    use crate::{assets::asset_serde::AssetSerde, mechanics::dice::Dice};
 
     use super::*;
 
@@ -178,7 +233,8 @@ mod tests {
 
         let name_raw = "David Gilmour";
         let name = String::from(name_raw);
-        let entity = Entity::new(name, class, race, AbilityScores::from_defaults(), &mut rng);
+        let assets = AssetManager::from_no_assets();
+        let entity = Entity::new(name, class, race, AbilityScores::from_defaults(), &assets, &mut rng);
 
         assert_eq!(entity.name, name_raw);
         assert_eq!(entity.abilities, AbilityScores::from_defaults());
@@ -191,9 +247,10 @@ mod tests {
         let abilities = AbilityScores::new(20, 19, 18, 17, 16, 15);
         let class = Class::new(String::from("Class Name"), Dice::D12);
         let race = Race::new(String::new(), 45);
+        let assets = AssetManager::from_no_assets();
         let mut rng = StepRng::new(5, 1);
 
-        let entity = Entity::new(name, class, race, abilities.clone(), &mut rng);
+        let entity = Entity::new(name, class, race, abilities.clone(), &assets, &mut rng);
 
         assert_eq!(entity.get_name(), entity.name);
         assert_eq!(entity.get_uuid(), entity.uuid.as_u128());
@@ -220,8 +277,9 @@ mod tests {
     pub fn test_get_skill_score() {
         let class = Class::new(String::from("Class Name"), Dice::D12);
         let race = Race::new(String::new(), 30);
+        let assets = AssetManager::from_no_assets();
         let mut rng = StepRng::new(5, 1);
-        let entity = Entity::new(String::new(), class, race, AbilityScores::from_defaults(), &mut rng);
+        let entity = Entity::new(String::new(), class, race, AbilityScores::from_defaults(), &assets, &mut rng);
         let map = entity.get_skill_scores();
 
         for (skill, score) in map {
@@ -233,8 +291,9 @@ mod tests {
     pub fn skill_scores_default() {
         let class = Class::new(String::from("Class Name"), Dice::D12);
         let race = Race::new(String::new(), 30);
+        let assets = AssetManager::from_no_assets();
         let mut rng = StepRng::new(5, 1);
-        let entity = Entity::new(String::new(), class, race, AbilityScores::from_defaults(), &mut rng);
+        let entity = Entity::new(String::new(), class, race, AbilityScores::from_defaults(), &assets, &mut rng);
         
         // Each score should be 0 - no proficiency or skill bonus
         for skill in Skill::iter() {
@@ -257,9 +316,10 @@ mod tests {
         for i in 0..31 {
             let class = Class::new(String::from("Class Name"), Dice::D12);
             let race = Race::new(String::new(), 30);
+            let assets = AssetManager::from_no_assets();
             let mut rng = StepRng::new(5, 1);
             let entity = Entity::new(String::new(), class, race,
-                AbilityScores::new(i, i, i, i, i, i), &mut rng);
+                AbilityScores::new(i, i, i, i, i, i), &assets, &mut rng);
                         
             for skill in Skill::iter() {
                 assert_eq!(entity.get_skill_score(skill), expected_modifiers[i as usize]);
@@ -281,9 +341,10 @@ mod tests {
         for i in 0..31 {
             let class = Class::new(String::from("Class Name"), Dice::D12);
             let race = Race::new(String::new(), 30);
+            let assets = AssetManager::from_no_assets();
             let mut rng = StepRng::new(5, 1);
             let mut entity = Entity::new(String::new(), class, race,
-                AbilityScores::new(i, i, i, i, i, i), &mut rng);
+                AbilityScores::new(i, i, i, i, i, i), &assets, &mut rng);
             
             let bonus_normal = 0; 
             let bonus_halfprof = entity.get_proficiency_bonus() / 2;
@@ -317,8 +378,9 @@ mod tests {
         for i in 1..21 {
             let class = Class::new(String::from("Class Name"), Dice::D12);
             let race = Race::new(String::new(), 30);
+            let assets = AssetManager::from_no_assets();
             let mut rng = StepRng::new(5, 1);
-            let mut entity = Entity::new(String::new(), class, race, AbilityScores::from_defaults(), &mut rng);
+            let mut entity = Entity::new(String::new(), class, race, AbilityScores::from_defaults(), &assets, &mut rng);
              
             // Level up i - 1 times 
             for _ in 0..i-1 {
@@ -333,8 +395,9 @@ mod tests {
     pub fn saves_default() {
         let class = Class::new(String::from("Class Name"), Dice::D12);
         let race = Race::new(String::new(), 30);
+        let assets = AssetManager::from_no_assets();
         let mut rng = StepRng::new(5, 1);
-        let entity = Entity::new(String::new(), class, race, AbilityScores::from_defaults(), &mut rng);
+        let entity = Entity::new(String::new(), class, race, AbilityScores::from_defaults(), &assets, &mut rng);
          
 
         // Each score should be 0 - no proficiency bonus
@@ -358,9 +421,10 @@ mod tests {
         for i in 0..31 {
             let class = Class::new(String::from("Class Name"), Dice::D12);
             let race = Race::new(String::new(), 30);
+            let assets = AssetManager::from_no_assets();
             let mut rng = StepRng::new(5, 1);
             let entity = Entity::new(String::new(), class, race,
-                AbilityScores::new(i, i, i, i, i, i), &mut rng);
+                AbilityScores::new(i, i, i, i, i, i), &assets, &mut rng);
             
             for ability in Ability::iter() {
                 assert_eq!(entity.get_save_score(ability), expected_modifiers[i as usize]);
@@ -383,9 +447,10 @@ mod tests {
         for i in 0..31 {
             let class = Class::new(String::from("Class Name"), Dice::D12);
             let race = Race::new(String::new(), 30);
+            let assets = AssetManager::from_no_assets();
             let mut rng = StepRng::new(5, 1);
             let mut entity = Entity::new(String::new(), class, race,
-                AbilityScores::new(i, i, i, i, i, i), &mut rng);
+                AbilityScores::new(i, i, i, i, i, i), &assets, &mut rng);
             
             for ability in Ability::iter() {
                 entity.set_save_attribute(ability, SaveAttributes::Proficient);
@@ -402,8 +467,10 @@ mod tests {
     pub fn level_up() { 
         let class = Class::new(String::from("Class Name"), Dice::D12);
         let race = Race::new(String::new(), 30);
+        let assets = AssetManager::from_no_assets();
         let mut rng = StepRng::new(1, 1);
-        let mut entity = Entity::new(String::new(), class, race, AbilityScores::new(10, 10, 14, 10, 10, 10), &mut rng);
+        let mut entity = Entity::new(String::new(), class, race, 
+            AbilityScores::new(10, 10, 14, 10, 10, 10), &assets, &mut rng);
 
         // Check initial condition 
         assert_eq!(entity.get_level(), 1);
@@ -427,32 +494,39 @@ mod tests {
     pub fn serde() {
         let class = Class::new(String::from("Class Name!😊"), Dice::D20);
         let race = Race::new(String::new(), u8::MAX);
+        let assets = AssetManager::from_no_assets();
         let mut rng = StepRng::new(0, 0);
         let abilities = AbilityScores::new(0, 5, 10, 15, 20, 25);
-        let entity = Entity::new(String::from("Entity Named Finger:"), class, race, abilities, &mut rng);
+        let entity = Entity::new(String::from("Entity Named Finger:"), class, race, abilities, &assets, &mut rng);
+
+        let expected_uuid = entity.uuid;
+        let expected_hp = entity.hp;
 
         // Serialize, then deserialize, and check the data 
-        let ser = serde_yaml::to_string(&entity).unwrap();
-        let de = serde_yaml::from_str::<Entity>(&ser).unwrap();
-
-        assert_eq!(de.uuid, entity.uuid);
+        let tmp_dir = TempDir::new("entity_serde").unwrap();
+        let serde_file = tmp_dir.path().join("test_entity.panic");
+        
+        AssetSerde::serialize_entity(entity, &serde_file).unwrap();
+        let de = AssetSerde::deserialize_entity(&serde_file, &assets).unwrap();
+        
+        assert_eq!(de.uuid, expected_uuid);
         assert_eq!(de.name, String::from("Entity Named Finger:"));
 
-        assert_eq!(de.hp, entity.hp);
-        assert_eq!(de.hp_max, entity.hp_max);
-        assert_eq!(de.hp_temp, entity.hp_temp);
+        assert_eq!(de.hp, expected_hp);
+        assert_eq!(de.hp_max, expected_hp);
+        assert_eq!(de.hp_temp, 0);
 
-        assert_eq!(de.level, entity.level);
+        assert_eq!(de.level, 1);
 
-        assert_eq!(de.class.get_name(), entity.class.get_name());
-        assert_eq!(de.class.get_hit_die(), entity.class.get_hit_die());
+        assert_eq!(de.class.get_name(), "Class Name!😊");
+        assert_eq!(de.class.get_hit_die(), Dice::D20);
 
-        assert_eq!(de.race.get_name(), entity.race.get_name());
-        assert_eq!(de.race.get_speed(), entity.race.get_speed());
+        assert_eq!(de.race.get_name(), String::new());
+        assert_eq!(de.race.get_speed(), u8::MAX);
 
-        assert_eq!(de.abilities, entity.abilities);
+        assert_eq!(de.abilities, AbilityScores::new(0, 5, 10, 15, 20, 25));
         
-        assert_eq!(de.skills, entity.skills);
-        assert_eq!(de.saves, entity.saves);
+        assert_eq!(de.skills, EnumMap::from_value(SkillAttributes::Normal));
+        assert_eq!(de.saves, EnumMap::from_value(SaveAttributes::Normal));
     }
 }

@@ -1,6 +1,10 @@
-use std::{fs::File, io::Error, path::Path};
+use std::{fs::File, io::{Error, ErrorKind}, path::Path};
 
 use serde::de::DeserializeOwned;
+
+use crate::entities::entity::{Entity, EntitySerde};
+
+use super::asset_manager::AssetManager;
 
 
 
@@ -15,5 +19,27 @@ impl AssetSerde {
             Ok(e) => Ok(e),
             Err(e) => Err(Error::new(std::io::ErrorKind::InvalidData, e))
         }
+    }
+
+    pub fn serialize_entity(entity: Entity, path: &Path) -> Result<(), Error> {
+        // Serializing is easy - just convert the entity to its serializable form and go ahead
+        let e = entity.to_serde();
+        let f = File::create(path)?;
+        match serde_yaml::to_writer(f, &e) {
+            Ok(()) => Ok(()), 
+            Err(e) => Err(Error::new(ErrorKind::InvalidData, e))
+        }
+    }
+
+    pub fn deserialize_entity<'d>(path: &Path, assets: &'d AssetManager) -> Result<Entity<'d>, Error> {
+        // Serialize the entity's template 
+        let f = File::open(path)?;
+        let e: EntitySerde = match serde_yaml::from_reader(f) {
+            Ok(e) => Ok(e),
+            Err(e) => Err(Error::new(ErrorKind::InvalidData, e)),
+        }?;
+
+        // Create the Entity
+        Ok(Entity::from_serde(e, assets))
     }
 }
