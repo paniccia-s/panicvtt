@@ -35,6 +35,16 @@ impl Asset for Class {
     }
 }
 
+impl Default for Class {
+    fn default() -> Self {
+        Self { 
+            uuid: Uuid::nil(), 
+            name: String::new(),
+            hit_die: Dice::D4 
+        }
+    }
+}
+
 #[cfg(test)]
 pub mod tests {
     use super::*;

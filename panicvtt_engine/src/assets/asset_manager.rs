@@ -1,5 +1,7 @@
 use std::{collections::HashMap, fs, io::Error, path::Path};
 
+use uuid::Uuid;
+
 use crate::entities::{class::Class, race::Race};
 
 use super::{asset::Asset, asset_serde::AssetSerde};
@@ -39,8 +41,11 @@ impl AssetManager {
     }
 
     pub fn new(asset_root: &Path) -> Result<Self, Error> {
-        let mut classes: Option<HashMap<u128, Class>> = None;
-        let mut races: Option<HashMap<u128, Race>> = None;
+        let default_class = Class::default();
+        let default_race = Race::default();
+
+        let mut classes: HashMap<u128, Class> = HashMap::from([(default_class.get_uuid(), default_class)]);
+        let mut races: HashMap<u128, Race> = HashMap::from([(default_race.get_uuid(), default_race)]);
 
         // Attempt to open the directory provided
         for obj in fs::read_dir(asset_root)? {
@@ -52,16 +57,16 @@ impl AssetManager {
                 // Determine which asset folder we're about to load 
                 let dir_name = path.file_name().unwrap_or_default();
                 if dir_name == "classes" {
-                    classes = Some(Self::parse_asset(&path)?);
+                    classes.extend(Self::parse_asset(&path)?);
                 } else if dir_name == "races" {
-                    races = Some(Self::parse_asset(&path)?);
+                    races.extend(Self::parse_asset(&path)?);
                 } // Ignore directories that don't match
             }
         }
 
         Ok(Self {
-            classes: classes.unwrap_or_default(),
-            races: races.unwrap_or_default(),
+            classes,
+            races
         })
     }
 
@@ -97,11 +102,20 @@ impl AssetManager {
     pub fn get_race(&self, uuid: u128) -> Option<&Race> {
         self.races.get(&uuid)
     }
+
+    pub fn get_default_class(&self) -> &Class {
+        self.classes.get(&Uuid::nil().as_u128()).unwrap()
+    }
+    pub fn get_default_race(&self) -> &Race {
+        self.races.get(&Uuid::nil().as_u128()).unwrap()
+    }
 }
 
 
 #[cfg(test)]
 pub mod tests {
+    use uuid::Uuid;
+
     use crate::mechanics::dice::Dice;
 
     use super::*;
@@ -115,17 +129,25 @@ pub mod tests {
         // Load the directory into the asset manager 
         let am = AssetManager::new(test_asset_root).unwrap();
 
-        // We loaded one class and one race - verify each 
-        assert_eq!(am.classes.len(), 1);
+        // We loaded one class and one race, and there is one default for each - verify each 
+        assert_eq!(am.classes.len(), 2);
 
         let c = am.classes.get(&0x00000000111122223333444444444444u128).unwrap();
         assert_eq!(c.get_name(), String::from("Class Name"));
         assert_eq!(c.get_hit_die(), Dice::D20);
 
-        assert_eq!(am.races.len(), 1);
+        let default_class = am.classes.get(&Uuid::nil().as_u128()).unwrap();
+        assert_eq!(default_class.get_name(), String::new());
+        assert_eq!(default_class.get_hit_die(), Dice::D4);
+
+        assert_eq!(am.races.len(), 2);
 
         let r = am.races.get(&0xaaaaaaaabbbbccccddddeeeeeeeeeeeeu128).unwrap();
         assert_eq!(r.get_name(), String::from("Race Name"));
         assert_eq!(r.get_speed(), 123);
+
+        let default_race = am.races.get(&Uuid::nil().as_u128()).unwrap();
+        assert_eq!(default_race.get_name(), String::new());
+        assert_eq!(default_race.get_speed(), 0);
     }
 }

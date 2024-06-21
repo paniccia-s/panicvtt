@@ -20,35 +20,24 @@ impl<'e> Engine<'e> {
         }
     }
 
-    // pub fn new_entity(&'e mut self, name: &str) -> &Entity {  
-    //     let entity = Entity::new(String::from(name), 
-    //         Class::new(String::from("Class Name"), Dice::D12), 
-    //         Race::new(String::from("Race Name"), 30), 
-    //         AbilityScores::from_defaults(), 
-    //         &self.asset_manager, 
-    //         &mut self.rng);
-        
-    //     let uuid = entity.get_uuid();
-    //     self.entities.insert(uuid, entity);
+    pub fn new_entity(&'e mut self, name: &str) -> &'e Entity {
+        Self::new_entity_with_abilities(self, name, AbilityScores::from_defaults())
+    }
 
-    //     // We just put this entity in, so this cannot fail 
-    //     self.entities.get(&uuid).unwrap()
-    // }
+    pub fn new_entity_with_abilities(&'e mut self, name: &str, abilities: AbilityScores) -> &'e Entity {
+        // Use default class/race 
+        let entity = Entity::new(String::from(name), 
+            self.asset_manager.get_default_class(), 
+            self.asset_manager.get_default_race(), 
+            abilities, 
+            &self.asset_manager, &mut self.rng);
 
-    // pub fn new_entity_with_abilities(&'e mut self, name: &str, abilities: AbilityScores) -> &Entity {
-    //     let entity = Entity::new(String::from(name), 
-    //         Class::new(String::from("Class Name"), Dice::D12),
-    //         Race::new(String::from("Race Name"), 30), 
-    //         abilities, 
-    //         &self.asset_manager,
-    //         &mut self.rng);
-        
-    //     let uuid = entity.get_uuid();
-    //     self.entities.insert(uuid, entity);
-        
-    //     // We just put this entity in, so this cannot fail 
-    //     self.entities.get(&uuid).expect("")
-    // }
+        // Register this entity 
+        let uuid = entity.get_uuid();
+        self.entities.insert(uuid, entity);
+
+        self.entities.get(&uuid).unwrap()
+    }
 
     pub fn delete_entity(&mut self, uuid: EntityID) -> Option<Entity> {
         self.entities.remove(&uuid) 

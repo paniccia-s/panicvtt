@@ -34,6 +34,16 @@ impl Asset for Race {
     }
 }
 
+impl Default for Race {
+    fn default() -> Self {
+        Self { 
+            uuid: Uuid::nil(), 
+            name: String::new(), 
+            speed: 0 
+        }
+    }
+}
+
 #[cfg(test)]
 pub mod tests {
     use super::*;
