@@ -67,11 +67,35 @@ impl AssetManager {
 
     // Most tests don't need assets - no need to load anything in this case 
     #[cfg(test)]
-    pub fn from_no_assets() -> Self {
+    pub fn from_test_config() -> Self {
+
+        use crate::mechanics::dice::Dice;
+
+        let c = Class::new(String::from("Testing Class"), Dice::D12);
+        let r = Race::new(String::from("Testing Race"), 123);
+        
         Self {
-            classes: Default::default(), 
-            races: Default::default()
+            classes: HashMap::from([(c.get_uuid(), c)]), 
+            races: HashMap::from([(r.get_uuid(), r)]),
         }
+    }
+
+    #[cfg(test)]
+    pub fn get_testing_class(&self) -> &Class {
+        self.classes.iter().next().unwrap().1
+    }
+
+    #[cfg(test)]
+    pub fn get_testing_race(&self) -> &Race {
+        self.races.iter().next().unwrap().1
+    }
+
+    pub fn get_class(&self, uuid: u128) -> Option<&Class> {
+        self.classes.get(&uuid)
+    }
+
+    pub fn get_race(&self, uuid: u128) -> Option<&Race> {
+        self.races.get(&uuid)
     }
 }
 

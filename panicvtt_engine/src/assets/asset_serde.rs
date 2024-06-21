@@ -40,6 +40,9 @@ impl AssetSerde {
         }?;
 
         // Create the Entity
-        Ok(Entity::from_serde(e, assets))
+        match Entity::from_serde(e, assets) {
+            Some(entity) => Ok(entity),
+            None => Err(Error::new(ErrorKind::InvalidData, "Class or race not found")),
+        }
     }
 }
