@@ -31,7 +31,7 @@ impl AssetSerde {
         }
     }
 
-    pub fn deserialize_reference_serializable<'rs, T>(path: &Path, assets: &'rs AssetManager) -> Result<T::Deserialized, Error> where T : ReferenceSerializable<'rs> {
+    pub fn deserialize_reference_serializable<'rs, T>(path: &Path, assets: &'rs AssetManager) -> Result<T::TypeWithRefs, Error> where T : ReferenceSerializable<'rs> {
         // Deserialize the entity's template 
         let f = File::open(path)?;
         let v = match serde_yaml::from_reader(f) {

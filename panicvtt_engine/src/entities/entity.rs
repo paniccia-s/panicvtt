@@ -184,9 +184,9 @@ impl Display for Entity<'_> {
 
 impl<'e> ReferenceSerializable<'e> for Entity<'e> {
     
-    type Serializable = EntitySerde;
+    type DirectSerde = EntitySerde;
     
-    fn serialize(self) -> Self::Serializable {
+    fn serialize(self) -> Self::DirectSerde {
         EntitySerde {
             uuid: self.uuid, 
             name: self.name, 
@@ -202,9 +202,9 @@ impl<'e> ReferenceSerializable<'e> for Entity<'e> {
         }
     }
     
-    type Deserialized = Entity<'e>;
+    type TypeWithRefs = Entity<'e>;
     
-    fn deserialize(serde: Self::Serializable, assets: &'e AssetManager) -> Option<Self::Deserialized> {
+    fn deserialize(serde: Self::DirectSerde, assets: &'e AssetManager) -> Option<Self::TypeWithRefs> {
         let race = assets.get_race(serde.race)?;
         let class = assets.get_class(serde.class)?;
         
