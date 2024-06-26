@@ -2,9 +2,7 @@ use std::{fs::File, io::{Error, ErrorKind}, path::Path};
 
 use serde::de::DeserializeOwned;
 
-use crate::entities::entity::{Entity, EntitySerde};
-
-use super::asset_manager::AssetManager;
+use super::{asset_manager::AssetManager, reference_serializable::ReferenceSerializable};
 
 
 
@@ -21,28 +19,31 @@ impl AssetSerde {
         }
     }
 
-    pub fn serialize_entity(entity: Entity, path: &Path) -> Result<(), Error> {
-        // Serializing is easy - just convert the entity to its serializable form and go ahead
-        let e = entity.to_serde();
+
+
+    pub fn serialize_reference_serializable<'rs, T>(val: T, path: &Path) -> Result<(), Error> where T : ReferenceSerializable<'rs> {
+        // Serializing is easy - just convert the T to its serializable form and go ahead 
+        let v = val.serialize();
         let f = File::create(path)?;
-        match serde_yaml::to_writer(f, &e) {
+        match serde_yaml::to_writer(f, &v) {
             Ok(()) => Ok(()), 
             Err(e) => Err(Error::new(ErrorKind::InvalidData, e))
         }
     }
 
-    pub fn deserialize_entity<'d>(path: &Path, assets: &'d AssetManager) -> Result<Entity<'d>, Error> {
-        // Serialize the entity's template 
+    pub fn deserialize_reference_serializable<'rs, T>(path: &Path, assets: &'rs AssetManager) -> Result<T::Deserialized, Error> where T : ReferenceSerializable<'rs> {
+        // Deserialize the entity's template 
         let f = File::open(path)?;
-        let e: EntitySerde = match serde_yaml::from_reader(f) {
-            Ok(e) => Ok(e),
+        let v = match serde_yaml::from_reader(f) {
+            Ok(v) => Ok(v), 
             Err(e) => Err(Error::new(ErrorKind::InvalidData, e)),
         }?;
 
-        // Create the Entity
-        match Entity::from_serde(e, assets) {
-            Some(entity) => Ok(entity),
-            None => Err(Error::new(ErrorKind::InvalidData, "Class or race not found")),
+        // Create the object itself 
+        match T::deserialize(v, assets) {
+            Some(val) => Ok(val), 
+            None => Err(Error::new(ErrorKind::InvalidData, "Uh oh "))
         }
     }
+
 }

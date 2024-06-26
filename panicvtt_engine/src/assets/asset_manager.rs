@@ -1,5 +1,6 @@
 use std::{collections::HashMap, fs, io::Error, path::Path};
 
+use serde::de::DeserializeOwned;
 use uuid::Uuid;
 
 use crate::entities::{class::Class, race::Race};
@@ -13,7 +14,7 @@ pub struct AssetManager {
 
 impl AssetManager { 
 
-    fn parse_asset<T>(asset_dir: &Path) -> Result<HashMap<u128, T>, Error> where T : Asset {
+    fn parse_asset<T>(asset_dir: &Path) -> Result<HashMap<u128, T>, Error> where T : Asset + DeserializeOwned {
         let mut map: HashMap<u128, T> = HashMap::new();
 
         // Iterate over everything in the directory 
@@ -103,9 +104,11 @@ impl AssetManager {
         self.races.get(&uuid)
     }
 
+    
     pub fn get_default_class(&self) -> &Class {
         self.classes.get(&Uuid::nil().as_u128()).unwrap()
     }
+    
     pub fn get_default_race(&self) -> &Race {
         self.races.get(&Uuid::nil().as_u128()).unwrap()
     }

@@ -1,6 +1,3 @@
-use serde::de::DeserializeOwned;
-
-
-pub(crate) trait Asset : DeserializeOwned {
+pub(crate) trait Asset {
     fn get_uuid(&self) -> u128;
 }

@@ -3,7 +3,7 @@ use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{assets::{asset::Asset, asset_manager::AssetManager}, mechanics::dice::Rng, util::enum_map::EnumMap};
+use crate::{assets::{asset::Asset, asset_manager::AssetManager, reference_serializable::ReferenceSerializable}, mechanics::dice::Rng, util::enum_map::EnumMap};
 
 use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores, SaveAttributes, SaveIntType}, class::Class, race::Race, skills::{Skill, SkillAttributes, SkillModifierIntType}};
 
@@ -68,42 +68,6 @@ impl<'e> Entity<'e> {
 
         s.level_up(rng); 
         s
-    }
-
-    pub(crate) fn from_serde(serde: EntitySerde, assets: &'e AssetManager) -> Option<Self> {
-        let race = assets.get_race(serde.race)?;
-        let class = assets.get_class(serde.class)?;
-        
-        Some(Self {
-            uuid: serde.uuid, 
-            name: serde.name, 
-            assets, 
-            hp: serde.hp, 
-            hp_max: serde.hp_max, 
-            hp_temp: serde.hp_temp,
-            level: serde.level, 
-            race, 
-            class, 
-            abilities: serde.abilities, 
-            skills: serde.skills, 
-            saves: serde.saves
-        })
-    }
-
-    pub(crate) fn to_serde(self) -> EntitySerde {
-        EntitySerde {
-            uuid: self.uuid, 
-            name: self.name, 
-            hp: self.hp, 
-            hp_max: self.hp_max, 
-            hp_temp: self.hp_temp,
-            level: self.level, 
-            race: self.race.get_uuid(), 
-            class: self.class.get_uuid(), 
-            abilities: self.abilities, 
-            skills: self.skills, 
-            saves: self.saves
-        }
     }
 
 
@@ -216,6 +180,50 @@ impl Display for Entity<'_> {
         let uuid_str = self.uuid.as_u128().to_string();
         write!(f, "Entity {} (uuid ...{})", self.name, &uuid_str[uuid_str.len() - 6..])
     }
+}
+
+impl<'e> ReferenceSerializable<'e> for Entity<'e> {
+    
+    type Serializable = EntitySerde;
+    
+    fn serialize(self) -> Self::Serializable {
+        EntitySerde {
+            uuid: self.uuid, 
+            name: self.name, 
+            hp: self.hp, 
+            hp_max: self.hp_max, 
+            hp_temp: self.hp_temp,
+            level: self.level, 
+            race: self.race.get_uuid(), 
+            class: self.class.get_uuid(), 
+            abilities: self.abilities, 
+            skills: self.skills, 
+            saves: self.saves
+        }
+    }
+    
+    type Deserialized = Entity<'e>;
+    
+    fn deserialize(serde: Self::Serializable, assets: &'e AssetManager) -> Option<Self::Deserialized> {
+        let race = assets.get_race(serde.race)?;
+        let class = assets.get_class(serde.class)?;
+        
+        Some(Entity {
+            uuid: serde.uuid, 
+            name: serde.name, 
+            assets, 
+            hp: serde.hp, 
+            hp_max: serde.hp_max, 
+            hp_temp: serde.hp_temp,
+            level: serde.level, 
+            race, 
+            class, 
+            abilities: serde.abilities, 
+            skills: serde.skills, 
+            saves: serde.saves
+        })
+    }
+     
 }
 
 #[cfg(test)]
@@ -510,8 +518,8 @@ mod tests {
         let tmp_dir = TempDir::new("entity_serde").unwrap();
         let serde_file = tmp_dir.path().join("test_entity.panic");
         
-        AssetSerde::serialize_entity(entity, &serde_file).unwrap();
-        let de = AssetSerde::deserialize_entity(&serde_file, &assets).unwrap();
+        AssetSerde::serialize_reference_serializable(entity, &serde_file).unwrap();
+        let de = AssetSerde::deserialize_reference_serializable::<Entity>(&serde_file, &assets).unwrap();
         
         assert_eq!(de.uuid, expected_uuid);
         assert_eq!(de.name, String::from("Entity Named Finger:"));

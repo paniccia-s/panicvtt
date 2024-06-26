@@ -1,6 +1,6 @@
 use std::{collections::HashMap, path::Path};
 
-use crate::{assets::asset_manager::AssetManager, entities::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, class::Class, entity::Entity, race::Race}, mechanics::dice::{Dice, Rng}};
+use crate::{assets::asset_manager::AssetManager, entities::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, entity::Entity}, mechanics::dice::Rng};
 
 /// The token by which to uniquely identify Entities within the engine.
 type EntityID = u128;

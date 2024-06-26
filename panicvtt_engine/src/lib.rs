@@ -3,6 +3,7 @@ use std::path::Path;
 use engine::Engine;
 
 mod assets;
+
 pub mod entities;
 pub mod engine;
 mod mechanics;
