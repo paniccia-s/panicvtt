@@ -1,17 +1,17 @@
 use std::{collections::HashMap, path::Path};
 
-use crate::{assets::asset_manager::AssetManager, entities::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, entity::Entity}, mechanics::dice::Rng};
+use crate::{assets::{asset::Asset, asset_manager::AssetManager}, entities::{abilities::{Ability, AbilityScoreIntType, AbilityScores}, entity::Entity}, mechanics::dice::Rng};
 
 /// The token by which to uniquely identify Entities within the engine.
 type EntityID = u128;
 
-pub struct Engine<'e> {
-    entities: HashMap<EntityID, Entity<'e>>,    
+pub struct Engine {
+    entities: HashMap<EntityID, Entity>,    
     asset_manager: AssetManager,
     rng: Rng,
 }
 
-impl<'e> Engine<'e> {
+impl Engine {
     pub fn new(rng: Rng, asset_root: &Path) -> Self {
         Self {
             entities: HashMap::new(),
@@ -20,15 +20,15 @@ impl<'e> Engine<'e> {
         }
     }
 
-    pub fn new_entity(&'e mut self, name: &str) -> &'e Entity {
+    pub fn new_entity(&mut self, name: &str) -> &Entity {
         Self::new_entity_with_abilities(self, name, AbilityScores::from_defaults())
     }
 
-    pub fn new_entity_with_abilities(&'e mut self, name: &str, abilities: AbilityScores) -> &'e Entity {
+    pub fn new_entity_with_abilities(&mut self, name: &str, abilities: AbilityScores) -> &Entity {
         // Use default class/race 
         let entity = Entity::new(String::from(name), 
-            self.asset_manager.get_default_class(), 
-            self.asset_manager.get_default_race(), 
+            self.asset_manager.get_default_class().get_uuid(), 
+            self.asset_manager.get_default_race().get_uuid(), 
             abilities, 
             &self.asset_manager, &mut self.rng);
 
