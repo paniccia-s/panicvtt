@@ -1,11 +1,11 @@
-use std::{collections::HashMap, fs, io::Error, path::Path};
+use std::{collections::HashMap, fs::{self, File}, io::{Error, ErrorKind}, path::Path};
 
 use serde::de::DeserializeOwned;
 use uuid::Uuid;
 
 use crate::entities::{class::Class, race::Race};
 
-use super::{asset::Asset, asset_serde::AssetSerde};
+use super::asset::Asset;
 
 pub struct AssetManager {
     classes: HashMap<u128, Class>,
@@ -33,7 +33,8 @@ impl AssetManager {
                 map.extend(subdir);
             } else if path.extension().unwrap_or_default() == "panic" {
                 // Attempt to parse this asset and quit if we can't (for now)
-                let asset: T = AssetSerde::deserialize_asset(&path)?;
+                let f = File::open(path)?;
+                let asset: T = serde_yaml::from_reader(f).map_err(|e| Error::new(ErrorKind::InvalidData, e))?;
                 map.insert(asset.get_uuid(), asset);
             }
         }
