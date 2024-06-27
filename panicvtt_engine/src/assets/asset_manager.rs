@@ -21,11 +21,6 @@ impl AssetManager {
         for obj in fs::read_dir(asset_dir)? {
             let obj = obj?;
             let path = obj.path();
-            let m = path.extension();
-            match m {
-                Some(e) => println!("some {}", e.to_str().unwrap_or_default()),
-                None => println!("none"),
-            }
 
             // Recur into directories and aggregate everything found 
             if path.is_dir() {
@@ -133,25 +128,52 @@ pub mod tests {
         // Load the directory into the asset manager 
         let am = AssetManager::new(test_asset_root).unwrap();
 
-        // We loaded one class and one race, and there is one default for each - verify each 
-        assert_eq!(am.classes.len(), 2);
+        // We loaded two classes and two races, and there is one default for each - verify each 
+        assert_eq!(am.classes.len(), 3);
 
         let c = am.classes.get(&0x00000000111122223333444444444444u128).unwrap();
         assert_eq!(c.get_name(), String::from("Class Name"));
         assert_eq!(c.get_hit_die(), Dice::D20);
 
+        let c = am.classes.get(&0x00000000000000000000123456789000u128).unwrap();
+        assert_eq!(c.get_name(), String::from("Nested Class Name"));
+        assert_eq!(c.get_hit_die(), Dice::D100);
+
         let default_class = am.classes.get(&Uuid::nil().as_u128()).unwrap();
         assert_eq!(default_class.get_name(), String::new());
         assert_eq!(default_class.get_hit_die(), Dice::D4);
 
-        assert_eq!(am.races.len(), 2);
+        assert_eq!(am.races.len(), 3);
 
         let r = am.races.get(&0xaaaaaaaabbbbccccddddeeeeeeeeeeeeu128).unwrap();
         assert_eq!(r.get_name(), String::from("Race Name"));
         assert_eq!(r.get_speed(), 123);
 
+        let r = am.races.get(&0x99999999999999999999999999999999u128).unwrap();
+        assert_eq!(r.get_name(), String::from("Another Race Name! 😀"));
+        assert_eq!(r.get_speed(), 255);
+
         let default_race = am.races.get(&Uuid::nil().as_u128()).unwrap();
         assert_eq!(default_race.get_name(), String::new());
         assert_eq!(default_race.get_speed(), 0);
+    }
+
+    #[test]
+    pub fn default_getters() {
+        let test_asset_root = Path::new("test/assets");
+        assert!(test_asset_root.is_dir());
+
+        let am = AssetManager::new(test_asset_root).unwrap();
+
+        let c = am.get_default_class();
+        let r = am.get_default_race();
+
+        assert_eq!(c.get_name(), String::from(""));
+        assert_eq!(c.get_hit_die(), Dice::D4);
+        assert_eq!(c.get_uuid(), Uuid::nil().as_u128());
+
+        assert_eq!(r.get_name(), String::from(""));
+        assert_eq!(r.get_speed(), 0);
+        assert_eq!(r.get_uuid(), Uuid::nil().as_u128());
     }
 }

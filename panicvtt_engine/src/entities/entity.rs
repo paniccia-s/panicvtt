@@ -43,20 +43,12 @@ impl Default for EntityError {
 impl Error for EntityError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         None
-    }
-
-    fn description(&self) -> &str {
-        "description() is deprecated; use Display"
-    }
-
-    fn cause(&self) -> Option<&dyn Error> {
-        self.source()
-    }
+    } 
 }
 
 impl Display for EntityError {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        Ok(())
     }
 }
 
@@ -233,6 +225,7 @@ mod tests {
         
         assert_eq!(entity.get_name(), entity.name);
         assert_eq!(entity.get_uuid(), entity.uuid.as_u128());
+        assert_eq!(entity.get_class_name(&assets).unwrap(), class.get_name());
 
         // rng() = 5 + 1 = 6; con = 4; initial HP = 10
         assert_eq!(entity.get_hp(), 10);
@@ -250,6 +243,10 @@ mod tests {
 
         assert_eq!(entity.get_speed(&assets).unwrap(), 123);
         assert_eq!(entity.get_level(), 1);
+
+        let s = format!("{}", entity);
+        let uuid_str = entity.get_uuid().to_string();
+        assert_eq!(s, format!("Entity Rick Wright (uuid ...{})",  &uuid_str[uuid_str.len() - 6..]));
     }
 
     #[test]
@@ -507,5 +504,15 @@ mod tests {
         
         assert_eq!(de.skills, EnumMap::from_value(SkillAttributes::Normal));
         assert_eq!(de.saves, EnumMap::from_value(SaveAttributes::Normal));
+    }
+
+    #[test]
+    pub fn entity_error() {
+        let e = EntityError::new();
+        let e2: EntityError = Default::default();
+        assert!(e.source().is_none());
+
+        let f = format!("{}", e2);
+        assert_eq!(f, String::new()); 
     }
 }

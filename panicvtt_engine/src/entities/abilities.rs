@@ -1,7 +1,6 @@
-use std::{fmt::Display, str::FromStr};
+use std::fmt::Display;
 
 use enum_map::Enum;
-use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use strum::{EnumCount, EnumIter};
 
@@ -70,7 +69,7 @@ impl Display for AbilityScores {
     }
 }
 
-#[derive(Clone, Copy, Enum, EnumIter, EnumCount, FromPrimitive, Eq, PartialEq, Debug)]
+#[derive(Clone, Copy, Enum, EnumIter, EnumCount, Eq, PartialEq, Debug)]
 pub enum Ability {
     Strength, 
     Dexterity,
@@ -83,28 +82,6 @@ pub enum Ability {
 impl From<Ability> for usize {
     fn from(val: Ability) -> Self {
         val as usize
-    }
-}
-
-impl From<usize> for Ability {
-    fn from(value: usize) -> Self {
-        num::FromPrimitive::from_usize(value).unwrap()
-    }
-}
-
-impl FromStr for Ability {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "STR" => Ok(Ability::Strength), 
-            "DEX" => Ok(Ability::Dexterity), 
-            "CON" => Ok(Ability::Constitution), 
-            "INT" => Ok(Ability::Intelligence), 
-            "WIS" => Ok(Ability::Wisdom), 
-            "CHA" => Ok(Ability::Charisma), 
-            _ => Err(())
-        }
     }
 }
 
@@ -123,7 +100,7 @@ impl Display for Ability {
 
 pub type SaveIntType = i8; 
 
-#[derive(Debug, Clone, Copy, EnumIter, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SaveAttributes {
     Normal          = 0,
     Proficient      = 1, 
@@ -166,6 +143,14 @@ mod tests {
         assert_eq!(scores.get_ability_score(Ability::Intelligence), scores.intelligence);
         assert_eq!(scores.get_ability_score(Ability::Wisdom), scores.wisdom);
         assert_eq!(scores.get_ability_score(Ability::Charisma), scores.charisma);
+    }
+
+    #[test]
+    fn ability_scores_impls() {
+        let scores = AbilityScores::new(1, 2, 3, 21, 22, 23);
+        let s = format!("{}", scores);
+        assert_eq!(s, String::from("{ 1STR, 2DEX, 3CON, 21INT, 22WIS, 23CHA }"));
+    
     }
 
 }
