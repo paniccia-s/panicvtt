@@ -1,0 +1,43 @@
+uuid: eeeeeeee-dddd-cccc-bbbb-aaaaaaaaaaaa
+name: Test Entity
+hp: 150
+hp_max: 200
+hp_temp: 10
+level: 8
+class: 0x00000000111122223333444444444444
+race: 0xaaaaaaaabbbbccccddddeeeeeeeeeeee
+abilities:
+  strength: 20
+  dexterity: 19
+  constitution: 18
+  intelligence: 17
+  wisdom: 16
+  charisma: 15
+skills:
+  map:
+  - Normal
+  - HalfProficient
+  - Proficient
+  - Expertise
+  - Normal
+  - Normal
+  - Normal
+  - Normal
+  - Normal
+  - Normal
+  - Normal
+  - Normal
+  - Normal
+  - Normal
+  - Normal
+  - Normal
+  - Normal
+  - Normal
+saves:
+  map:
+  - Normal
+  - Proficient
+  - Normal
+  - Normal
+  - Normal
+  - Normal

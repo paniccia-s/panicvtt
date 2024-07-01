@@ -3,12 +3,12 @@ use std::{error::Error, fmt::Display};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{assets::asset_manager::AssetManager, mechanics::dice::Rng, util::enum_map::EnumMap};
+use crate::{assets::{asset::Asset, asset_manager::AssetManager}, mechanics::dice::Rng, util::enum_map::EnumMap};
 
 use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores, SaveAttributes, SaveIntType}, skills::{Skill, SkillAttributes, SkillModifierIntType}};
 
 /// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Entity {
     uuid: Uuid,
     name: String,
@@ -25,31 +25,6 @@ pub struct Entity {
     abilities: AbilityScores,
     skills: EnumMap<Skill, SkillAttributes>,
     saves: EnumMap<Ability, SaveAttributes>,
-}
-
-#[derive(Debug)]
-pub struct EntityError {}
-impl EntityError {
-    pub fn new() -> Self {
-        EntityError {}
-    }
-}
-
-impl Default for EntityError {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-impl Error for EntityError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        None
-    } 
-}
-
-impl Display for EntityError {
-    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Ok(())
-    }
 }
 
 impl Entity {
@@ -106,6 +81,10 @@ impl Entity {
 
     pub fn get_class_name<'a>(&'a self, assets: &'a AssetManager) -> Option<&'a str> {
         Some(assets.get_class(self.class)?.get_name())
+    }
+
+    pub fn get_race_name<'a>(&'a self, assets: &'a AssetManager) -> Option<&'a str> {
+        Some(assets.get_race(self.race)?.get_name())
     }
 
     pub fn get_ability_score(&self, ability: Ability) -> AbilityScoreIntType {
@@ -181,10 +160,41 @@ impl Entity {
     }
 }
 
+impl Asset for Entity {
+    fn get_uuid(&self) -> u128 {
+        self.get_uuid()
+    }
+}
+
 impl Display for Entity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let uuid_str = self.uuid.as_u128().to_string();
         write!(f, "Entity {} (uuid ...{})", self.name, &uuid_str[uuid_str.len() - 6..])
+    }
+}
+
+#[derive(Debug)]
+pub struct EntityError {}
+impl EntityError {
+    pub fn new() -> Self {
+        EntityError {}
+    }
+}
+
+impl Default for EntityError {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+impl Error for EntityError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    } 
+}
+
+impl Display for EntityError {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Ok(())
     }
 }
 
@@ -226,6 +236,7 @@ mod tests {
         assert_eq!(entity.get_name(), entity.name);
         assert_eq!(entity.get_uuid(), entity.uuid.as_u128());
         assert_eq!(entity.get_class_name(&assets).unwrap(), class.get_name());
+        assert_eq!(entity.get_race_name(&assets).unwrap(), race.get_name());
 
         // rng() = 5 + 1 = 6; con = 4; initial HP = 10
         assert_eq!(entity.get_hp(), 10);

@@ -6,6 +6,7 @@ use strum::{EnumCount, IntoEnumIterator};
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug)]
 pub struct EnumMap<E, V> {
     map: Vec<V>, 
+    #[serde(skip_serializing, skip_deserializing)]
     _e: std::marker::PhantomData<E>
 }
 

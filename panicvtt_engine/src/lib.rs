@@ -4,6 +4,7 @@ use engine::Engine;
 
 mod assets;
 
+pub mod campaigns;
 pub mod entities;
 pub mod engine;
 mod mechanics;
