@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::assets::asset::Asset;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Race {
     uuid: Uuid,
     name: String, 

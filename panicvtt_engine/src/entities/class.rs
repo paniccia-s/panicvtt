@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::{assets::asset::Asset, mechanics::dice::Dice};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Class {
     uuid: Uuid,
     name: String, 

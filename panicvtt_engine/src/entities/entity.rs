@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{assets::{asset::Asset, asset_manager::AssetManager}, mechanics::dice::Rng, util::enum_map::EnumMap};
 
-use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores, SaveAttributes, SaveIntType}, skills::{Skill, SkillAttributes, SkillModifierIntType}};
+use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores, SaveAttributes, SaveIntType}, class::Class, race::Race, skills::{Skill, SkillAttributes, SkillModifierIntType}};
 
 /// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
 #[derive(Serialize, Deserialize, Debug)]
@@ -73,6 +73,14 @@ impl Entity {
 
     pub fn get_level(&self) -> u8 {
         self.level
+    }
+
+    pub fn get_class<'e>(&'e self, assets: &'e AssetManager) -> Option<&'e Class> {
+        assets.get_class(self.class)
+    }
+
+    pub fn get_race<'e>(&'e self, assets: &'e AssetManager) -> Option<&'e Race> {
+        assets.get_race(self.race)
     }
 
     pub fn get_speed(&self, assets: &AssetManager) -> Option<u8> {

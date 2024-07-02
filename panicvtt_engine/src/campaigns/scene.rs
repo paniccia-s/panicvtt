@@ -22,7 +22,7 @@ impl Scene {
     pub(crate) fn get_name(&self) -> &str {
         &self.name
     }
-} 
+}
 
 impl Asset for Scene {
     fn get_uuid(&self) -> u128 {

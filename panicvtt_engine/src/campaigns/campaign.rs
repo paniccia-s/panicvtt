@@ -32,15 +32,15 @@ impl Campaign {
     }
 
 
-    pub(crate) fn get_name(&self) -> &str {
+    pub fn get_name(&self) -> &str {
         &self.name
     }
 
-    pub(crate) fn get_description(&self) -> &str {
+    pub fn get_description(&self) -> &str {
         &self.description
     }
 
-    pub(crate) fn create_scene(&mut self, scene_name: String) -> Option<&Scene> {
+    pub fn create_scene(&mut self, scene_name: String) -> Option<&Scene> {
         let scene = Scene::new(scene_name);
         let uuid = scene.get_uuid();
         self.scenes.insert(uuid, scene);
@@ -48,11 +48,11 @@ impl Campaign {
         self.scenes.get(&uuid)
     }
 
-    pub(crate) fn add_scene(&mut self, scene: Scene) {
+    pub fn add_scene(&mut self, scene: Scene) {
         self.scenes.insert(scene.get_uuid(), scene);
     }
 
-    pub(crate) fn get_scene(&self, id: u128) -> Option<&Scene> {
+    pub fn get_scene(&self, id: u128) -> Option<&Scene> {
         self.scenes.get(&id)
     }
 }
