@@ -61,6 +61,11 @@ impl Asset for Campaign {
     fn get_uuid(&self) -> u128 {
         self.uuid.as_u128()
     }
+    
+    fn get_owning_campaign(&self) -> Option<u128> {
+        // Campaigns are not owned 
+        None
+    }
 }
 
 #[cfg(test)]

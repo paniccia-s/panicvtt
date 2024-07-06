@@ -172,6 +172,10 @@ impl Asset for Entity {
     fn get_uuid(&self) -> u128 {
         self.get_uuid()
     }
+    
+    fn get_owning_campaign(&self) -> Option<u128> {
+        todo!()
+    }
 }
 
 impl Display for Entity {

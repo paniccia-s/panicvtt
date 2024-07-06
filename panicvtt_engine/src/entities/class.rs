@@ -33,6 +33,10 @@ impl Asset for Class {
     fn get_uuid(&self) -> u128 {
         self.uuid.as_u128()
     }
+    
+    fn get_owning_campaign(&self) -> Option<u128> {
+        todo!()
+    }
 }
 
 impl Default for Class {

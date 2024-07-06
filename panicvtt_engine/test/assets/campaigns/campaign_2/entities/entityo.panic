@@ -1,11 +1,11 @@
-uuid: eeeeeeee-dddd-cccc-bbbb-aaaaaaaaaaaa
-name: Global Entity 1
+uuid: ff00ff00-ff00-ff00-ff00-ff00ff00ff00
+name: Local Entity 1 (campaign_2)
 hp: 150
 hp_max: 200
 hp_temp: 10
 level: 8
-class: 0x00000000111122223333444444444444
-race: 0xaaaaaaaabbbbccccddddeeeeeeeeeeee
+class: 0xf0000000f000f000f000f00000000000
+race: 0x99999999999999999999999999999999
 abilities:
   strength: 20
   dexterity: 19

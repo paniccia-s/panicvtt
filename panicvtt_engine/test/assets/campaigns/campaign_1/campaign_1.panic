@@ -1,0 +1,6 @@
+uuid: 00001111-2222-3333-4444-123412341234
+name: "Campaign 1"
+path: "campaign_1"
+description: "Epic Campaign! Dungeon and dragon here!"
+scenes: {}
+active_scene: 
