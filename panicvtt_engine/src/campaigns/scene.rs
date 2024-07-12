@@ -5,6 +5,7 @@ use crate::assets::asset::Asset;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Scene {
+    #[serde(with = "uuid::serde::simple")]
     uuid: Uuid, 
     name: String, 
     entities: Vec<u128>

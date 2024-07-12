@@ -5,6 +5,7 @@ use crate::{assets::asset::Asset, mechanics::dice::Dice};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Class {
+    #[serde(with = "uuid::serde::simple")]
     uuid: Uuid,
     name: String, 
     hit_die: Dice

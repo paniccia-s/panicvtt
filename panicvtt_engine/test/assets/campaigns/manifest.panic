@@ -1,8 +1,8 @@
--   uuid: 00001111-2222-3333-4444-123412341234
+-   uuid: 00001111222233334444123412341234
     name: "Campaign 1"
     path: "campaign_1/"
     description: "Epic Campaign! Dungeon and dragon here!"
--   uuid: ffff1111-2222-3333-4444-123412341234
+-   uuid: ffff1111222233334444123412341234
     name: "Campaign 2: Electric Boogaloo"
     path: "campaign_2/"
     description: "This campaign stinks. I might disband it."

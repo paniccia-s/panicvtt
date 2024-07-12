@@ -1,4 +1,4 @@
-use std::{collections::HashMap, env, fs::{self, File}, io::{Error, ErrorKind}, path::Path};
+use std::{collections::HashMap, fs, io::{Error, ErrorKind}, path::Path};
 
 use serde::de::DeserializeOwned;
 use uuid::Uuid;
@@ -45,9 +45,14 @@ impl AssetManager {
     fn load_campaign_descriptions(campaign_dir: &Path) -> Result<HashMap<u128, CampaignDescription>, Error> {
         // Load the manifest or error out if it's not there 
         let manifest = campaign_dir.join(Path::new("manifest.panic"));
-        let f = File::open(manifest)?;
-
-        let campaigns: Vec<CampaignDescription> = serde_yaml::from_reader(f)
+        
+        // from_reader throws Errs about string borrow stuff that doesn't make sense. Changing uuid fields to serde::simple caused the issue. no idea. 
+        //let f = File::open(manifest)?;
+        // let campaigns: Vec<CampaignDescription> = serde_yaml::from_reader(f)
+        //     .map_err(|e| Error::new(ErrorKind::InvalidData, e))?;
+        
+        let data = fs::read_to_string(&manifest)?;        
+        let campaigns: Vec<CampaignDescription> = serde_yaml::from_str(&data)
             .map_err(|e| Error::new(ErrorKind::InvalidData, e))?;
 
         // Use the UUIDs as the keys 
@@ -57,8 +62,12 @@ impl AssetManager {
     }
 
     fn parse_asset<T>(asset_path: &Path) -> Result<T, Error> where T : Asset + DeserializeOwned {
-        let f = File::open(asset_path)?;
-        serde_yaml::from_reader(f).map_err(|e| Error::new(ErrorKind::InvalidData, e))
+        let data = fs::read_to_string(&asset_path)?;
+        serde_yaml::from_str(&data).map_err(|e| Error::new(ErrorKind::InvalidData, e))
+        
+        // from_reader throws Errs about string borrow stuff that doesn't make sense. Changing uuid fields to serde::simple caused the issue. no idea. 
+        // let f = File::open(asset_path)?;
+        // serde_yaml::from_reader(f).map_err(|e| Error::new(ErrorKind::InvalidData, e))
     }
 
     fn parse_asset_dir<T>(asset_dir: &Path) -> Result<HashMap<u128, T>, Error> where T : Asset + DeserializeOwned {
@@ -83,6 +92,7 @@ impl AssetManager {
         Ok(map)
     }
 
+    
     //TODO Might want to eventually look for duplicate UUIDs when deserializing... 
     pub fn new(asset_root: &Path) -> Result<Self, Error> {
         let default_class = Class::default();
@@ -181,6 +191,10 @@ impl AssetManager {
     
     pub fn get_default_race(&self) -> &Race {
         self.races.get(&Uuid::nil().as_u128()).unwrap()
+    }
+
+    pub fn get_campaign_descriptions(&self) -> Vec<&CampaignDescription> {
+        self.campaign_descriptions.values().collect()
     }
 
 

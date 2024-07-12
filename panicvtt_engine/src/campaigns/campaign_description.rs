@@ -3,6 +3,7 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CampaignDescription {
+    #[serde(with = "uuid::serde::simple")]
     uuid: Uuid, 
     name: String, 
     path: String, 

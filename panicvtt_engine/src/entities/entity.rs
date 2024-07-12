@@ -10,6 +10,7 @@ use super::{abilities::{Ability, AbilityScoreIntType, AbilityScores, SaveAttribu
 /// An Entity is an agent within the engine that is able to be unique identified and interacted with. 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Entity {
+    #[serde(with = "uuid::serde::simple")]
     uuid: Uuid,
     name: String,
 

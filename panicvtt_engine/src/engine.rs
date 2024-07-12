@@ -1,10 +1,21 @@
 use std::path::Path;
 
-use crate::{assets::asset_manager::AssetManager, campaigns::campaign::Campaign, entities::{abilities::AbilityScores, class::Class, entity::Entity, race::Race}, mechanics::dice::{Dice, Rng}};
+use crate::{assets::asset_manager::{AssetManager, LoadAssetResult}, campaigns::{campaign::Campaign, campaign_description::CampaignDescription}, entities::{abilities::AbilityScores, class::Class, entity::Entity, race::Race}, mechanics::dice::{Dice, Rng}};
 
 pub struct Engine {   
     asset_manager: AssetManager,
     rng: Rng,
+}
+
+
+macro_rules! get_from_asset_manager {
+    ($name:ident, $type:ty) => {
+        paste::item! {
+            pub fn [<get_ $name>](&self, id: u128) -> Option<&$type> {
+                self.asset_manager.[<get_ $name>](id)
+            }
+        }
+    };
 }
 
 impl Engine {
@@ -14,6 +25,18 @@ impl Engine {
             rng
         }
     }
+
+
+    pub fn get_campaign_descriptions(&self) -> Vec<&CampaignDescription> {
+        self.asset_manager.get_campaign_descriptions()
+    }
+
+    get_from_asset_manager!(campaign, Campaign);
+    get_from_asset_manager!(class, Class);
+    get_from_asset_manager!(race, Race);
+    get_from_asset_manager!(entity, Entity);
+
+
 
     pub fn new_campaign(&mut self, campaign_name: String, campaign_description: String) -> &Campaign {
         // Create a new campaign through the asset manager - if this fails a Uuid invariant is violated and we cannot continue
@@ -36,6 +59,11 @@ impl Engine {
         self.asset_manager.create_race(race_name, speed).unwrap()
     }
 
+    
+    pub fn load_campaign(&mut self, campaign_id: u128) -> LoadAssetResult<'_, Campaign> {
+        self.asset_manager.load_campaign(campaign_id)
+    }
+    
     // pub fn delete_entity(&mut self, uuid: EntityID) -> Option<Entity> {
     //     self.entities.remove(&uuid) 
     // }

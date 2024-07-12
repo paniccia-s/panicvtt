@@ -9,6 +9,7 @@ use super::scene::Scene;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Campaign {
+    #[serde(with = "uuid::serde::simple")]
     uuid: Uuid, 
     name: String, 
     description: String, 

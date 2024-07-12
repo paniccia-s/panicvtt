@@ -5,6 +5,7 @@ use crate::assets::asset::Asset;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Race {
+    #[serde(with = "uuid::serde::simple")]
     uuid: Uuid,
     name: String, 
     speed: u8, 
