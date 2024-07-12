@@ -1,5 +1,6 @@
 use std::sync::Mutex;
 
+use panicvtt_engine::assets::load_asset_result::LoadAssetResult;
 use rocket::{form::Form, response::Redirect, State};
 use rocket_dyn_templates::{Template, context};
 
@@ -63,13 +64,24 @@ pub struct LoadCampaign {
 }
 
 #[post("/load_campaign", data = "<form_data>")]
-pub fn load_campaign_put(form_data: Form<LoadCampaign>, _state: &State<Mutex<PanicState>>) -> Redirect {
+pub fn load_campaign_put(form_data: Form<LoadCampaign>, state: &State<Mutex<PanicState>>) -> Redirect {
     println!("\t{}", form_data.uuid);
     
     match u128::from_str_radix(&form_data.uuid, 16) {
         Ok(u) => {
-            println!("Load campaign {}", u);
-            Redirect::to("/load_campaign")
+            let mut lock = state.lock().unwrap();
+            let l = lock.engine.load_campaign(u);
+            
+            match l {
+                LoadAssetResult::Ok { asset } => {
+                    println!("Loaded campaign with name {}!", asset.get_name());
+                    Redirect::to("/load_campaign")
+                },
+                LoadAssetResult::UuidNotFoundError => todo!(),
+                LoadAssetResult::IoError { e } => todo!(),
+                LoadAssetResult::NoCampaignFound => todo!(),
+                LoadAssetResult::UuidDuplicateError { e } => todo!(),
+            }
         }, 
         Err(e) => {
             // Uh oh 

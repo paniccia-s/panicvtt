@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{campaigns::{campaign::Campaign, campaign_description::CampaignDescription, scene::Scene}, entities::{abilities::AbilityScores, class::Class, entity::Entity, race::Race}, mechanics::dice::{Dice, Rng}, util::asset_key_error::AssetKeyError};
 
-use super::asset::Asset;
+use super::{asset::Asset, load_asset_result::LoadAssetResult};
 
 pub struct AssetManager {
     asset_root: String, 
@@ -291,14 +291,6 @@ impl AssetManager {
         create_and_check_dups!(r, races, "r")
     }
 
-}
-
-pub enum LoadAssetResult<'a, A> where A : Asset {
-    Ok { asset: &'a A }, 
-    UuidNotFoundError, 
-    IoError { e: Error }, 
-    NoCampaignFound,
-    UuidDuplicateError { e: AssetKeyError<'a, A> }
 }
 
 #[cfg(test)]

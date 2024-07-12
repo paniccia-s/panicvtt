@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::{assets::asset_manager::{AssetManager, LoadAssetResult}, campaigns::{campaign::Campaign, campaign_description::CampaignDescription}, entities::{abilities::AbilityScores, class::Class, entity::Entity, race::Race}, mechanics::dice::{Dice, Rng}};
+use crate::{assets::{asset_manager::AssetManager, load_asset_result::LoadAssetResult}, campaigns::{campaign::Campaign, campaign_description::CampaignDescription}, entities::{abilities::AbilityScores, class::Class, entity::Entity, race::Race}, mechanics::dice::{Dice, Rng}};
 
 pub struct Engine {   
     asset_manager: AssetManager,

@@ -2,7 +2,7 @@
 
 {% block content %}
 <form action="connect/" method="post">
-    <button type="submit">Connect</button>
+    <button class="button" type="submit">Connect</button>
 </form>
 
 {% endblock content %}

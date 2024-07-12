@@ -34,26 +34,6 @@
     </div>
 </div>
     
-    <!-- <script>
-        var modal = document.getElementById("campaign_modal");
-        var span = modal.getElementsByClassName("close")[0];
-        var modalText = document.getElementById("modal-text");
-        var campaignLinks = document.getElementsByClassName("campaign-link");
-        
-    // Add click event to each link 
-    Array.from(campaignLinks).forEach(function(link) {
-        link.onclick = function(event) {
-            event.preventDefault();
-            modalText.textContent = "Details for " + this.getAttribute("data-campaign-name");
-        }
-    });
-
-    // Close event 
-    span.onclick = function() {
-        modal.style.display = "none";
-    }
-    console.log("?");
-</script> -->
 <script>
     var modal = document.getElementById("campaign_modal");
     var btns = document.getElementsByClassName("modal-button");

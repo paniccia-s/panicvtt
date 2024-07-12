@@ -1,4 +1,4 @@
-pub(crate) trait Asset {
+pub trait Asset {
     fn get_uuid(&self) -> u128;
     
     /// Retrieve the UUID of the campaign to which this Asset belongs. 
