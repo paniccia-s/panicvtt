@@ -1,0 +1,96 @@
+{% extends "base" %}
+
+{% block content %}
+<div class="content">
+    <form action="disconnect/" method="post">
+        <button class="button" type="submit">Disconect</button>
+    </form>
+
+    <h2 class="subtitle">Found Campaigns:</h2>
+    <div class="content">
+        <ul class="container">
+            {% for c in campaigns %}
+            <li>
+                <div class="container">
+                    <a class="button campaign-link modal-button" data-target="campaign_modal" campaign-name="{{ c.name }}" campaign-uuid="{{ c.uuid }}" campaign-description="{{ c.description }}" campaign-path="{{ c.path }}">{{c.name}}: ({{c.description}})</a>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <div id="campaign_modal" class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <form action="load_campaign/" method="post">
+                <p id="campaign-name"></p>
+                <p id="campaign-description"></p>
+                <p id="campaign-path"></p>
+                <input type="text" id="campaign-uuid" name="uuid" id="uuid" value="" hidden></input>
+                <button class="button" type="submit">Submit</button>
+            </form>
+            <button class="modal-close is-large" aria-label="close"></button>
+        </div>
+    </div>
+</div>
+    
+    <!-- <script>
+        var modal = document.getElementById("campaign_modal");
+        var span = modal.getElementsByClassName("close")[0];
+        var modalText = document.getElementById("modal-text");
+        var campaignLinks = document.getElementsByClassName("campaign-link");
+        
+    // Add click event to each link 
+    Array.from(campaignLinks).forEach(function(link) {
+        link.onclick = function(event) {
+            event.preventDefault();
+            modalText.textContent = "Details for " + this.getAttribute("data-campaign-name");
+        }
+    });
+
+    // Close event 
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+    console.log("?");
+</script> -->
+<script>
+    var modal = document.getElementById("campaign_modal");
+    var btns = document.getElementsByClassName("modal-button");
+    Array.from(btns).forEach(function(b) {
+        b.addEventListener('click', function() {
+            modal.setAttribute("uuid", b.getAttribute("campaign-uuid"));
+
+            document.getElementById("campaign-name").textContent = b.getAttribute("campaign-name");
+            document.getElementById("campaign-description").textContent = b.getAttribute("campaign-description");
+            document.getElementById("campaign-path").textContent = b.getAttribute("campaign-path");
+            document.getElementById("campaign-uuid").value = b.getAttribute("campaign-uuid");
+
+            modal.classList.add('is-active');
+        })
+    });
+
+    var close_buttons = document.getElementsByClassName("modal-close");
+    Array.from(close_buttons).forEach(function(b) {
+        b.addEventListener('click', function() {
+            modal.classList.remove('is-active');
+        })
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            modal.classList.remove('is-active');
+        }
+    })
+    // $(".modal-button").click(function() {
+    //    var target = $(this).data("target");
+    //    $("html").addClass("is-clipped");
+    //    $(target).addClass("is-active");
+    // });
+    
+    // $(".modal-close").click(function() {
+    //    $("html").removeClass("is-clipped");
+    //    $(this).parent().removeClass("is-active");
+    // });
+ </script>
+{% endblock content %}

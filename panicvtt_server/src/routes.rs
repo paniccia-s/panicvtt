@@ -3,7 +3,9 @@ use std::sync::Mutex;
 use rocket::{form::Form, response::Redirect, State};
 use rocket_dyn_templates::{Template, context};
 
-use crate::{panic_state::PanicState, parse_command::{command_delete_entity, command_get_entity_abilities, command_get_entity_ability, command_list_entities, command_new_entity}, parse_error::ParseError};
+//use crate::{panic_state::PanicState, parse_command::{command_delete_entity, command_get_entity_abilities, command_get_entity_ability, command_list_entities, command_new_entity}, parse_error::ParseError};
+
+use crate::{panic_state::PanicState, parse_error::ParseError};
 
 use super::models::{Command, CommandList};
 
@@ -39,7 +41,42 @@ pub struct Login {
 pub fn login_post(form_data: Form<Login>) -> Redirect {
     // !TODO 
     println!("Login pair: {} {}", form_data.username, form_data.password);
-    Redirect::to("/vtt")
+    Redirect::to("/load_campaign")
+}
+
+#[get("/load_campaign")]
+pub fn load_campaign_get(state: &State<Mutex<PanicState>>) -> Template {
+    let lock = state.lock().unwrap();
+
+    // Get loaded campaign information from the engine 
+    let campaigns = lock.engine.get_campaign_descriptions();
+    Template::render("load_campaign", context! {
+        subtitle: "- Select Campaign!",
+        campaigns: campaigns,
+        version: panicvtt_engine::version(),
+    })
+}
+
+#[derive(FromForm)]
+pub struct LoadCampaign {
+    uuid: String
+}
+
+#[post("/load_campaign", data = "<form_data>")]
+pub fn load_campaign_put(form_data: Form<LoadCampaign>, _state: &State<Mutex<PanicState>>) -> Redirect {
+    println!("\t{}", form_data.uuid);
+    
+    match u128::from_str_radix(&form_data.uuid, 16) {
+        Ok(u) => {
+            println!("Load campaign {}", u);
+            Redirect::to("/load_campaign")
+        }, 
+        Err(e) => {
+            // Uh oh 
+            eprintln!("{}", e);
+            Redirect::to("/load_campaign")
+        }
+    }
 }
 
 #[get("/vtt")]
@@ -78,34 +115,35 @@ pub fn disconnect() -> Redirect {
 }
 
 
-const COMMAND_NEW_ENTITY:           &str = "new_entity";
-const COMMAND_DELETE_ENTITY:        &str = "delete_entity"; 
-const COMMAND_LIST_ENTITIES:        &str = "list_entities";
-const COMMAND_GET_ENTITY_ABILITY:   &str = "get_entity_ability";
-const COMMAND_GET_ENTITY_ABILITIES: &str = "get_entity_abilities";
+const _COMMAND_NEW_ENTITY:           &str = "new_entity";
+const _COMMAND_DELETE_ENTITY:        &str = "delete_entity"; 
+const _COMMAND_LIST_ENTITIES:        &str = "list_entities";
+const _COMMAND_GET_ENTITY_ABILITY:   &str = "get_entity_ability";
+const _COMMAND_GET_ENTITY_ABILITIES: &str = "get_entity_abilities";
 
-pub(super) fn parse_command(command: &str, state: &mut PanicState) -> Result<String, ParseError> {
-    // Tokenize by whitespace
-    let tokens: Vec<&str> = command.split_whitespace().collect();
+pub(super) fn parse_command(_command: &str, _state: &mut PanicState) -> Result<String, ParseError> {
+    todo!()
+    // // Tokenize by whitespace
+    // let tokens: Vec<&str> = command.split_whitespace().collect();
 
-    // Parse the tokens 
-    return match tokens.first() {
-        Some(cmd) => {
-            match *cmd {
-                COMMAND_NEW_ENTITY              => command_new_entity(&tokens, state), 
-                COMMAND_DELETE_ENTITY           => command_delete_entity(&tokens, state), 
-                COMMAND_LIST_ENTITIES           => command_list_entities(&tokens, state),
-                COMMAND_GET_ENTITY_ABILITY      => command_get_entity_ability(&tokens, state),
-                COMMAND_GET_ENTITY_ABILITIES    => command_get_entity_abilities(&tokens, state),
-                _ => {
-                    // Invalid token! 
-                    Err(ParseError::from_syntax_error(&tokens, cmd))
-                }
-            } 
-        }, 
-        None => {
-            // We got nothing 
-            Err(ParseError::from_wrong_num_args(&tokens, 0, 1))
-        }
-    } 
+    // // Parse the tokens 
+    // return match tokens.first() {
+    //     Some(cmd) => {
+    //         match *cmd {
+    //             COMMAND_NEW_ENTITY              => command_new_entity(&tokens, state), 
+    //             COMMAND_DELETE_ENTITY           => command_delete_entity(&tokens, state), 
+    //             COMMAND_LIST_ENTITIES           => command_list_entities(&tokens, state),
+    //             COMMAND_GET_ENTITY_ABILITY      => command_get_entity_ability(&tokens, state),
+    //             COMMAND_GET_ENTITY_ABILITIES    => command_get_entity_abilities(&tokens, state),
+    //             _ => {
+    //                 // Invalid token! 
+    //                 Err(ParseError::from_syntax_error(&tokens, cmd))
+    //             }
+    //         } 
+    //     }, 
+    //     None => {
+    //         // We got nothing 
+    //         Err(ParseError::from_wrong_num_args(&tokens, 0, 1))
+    //     }
+    // } 
 }

@@ -1,10 +1,15 @@
 <!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css">
+<script src = "https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <html>
     <head>
         <title>PanicVTT {{subtitle}}</title>
     </head>
     <body>
-        <h1>PanicVTT Version {{version}}</h1>
+        <h1 class="title">PanicVTT Version {{version}}</h1>
+
         {% block content %}{% endblock content %}
 
         <footer>
