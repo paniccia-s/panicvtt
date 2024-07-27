@@ -75,30 +75,34 @@ pub fn load_campaign_put(form_data: Form<LoadCampaign>, state: &State<Mutex<Pani
             match l {
                 LoadAssetResult::Ok { asset } => {
                     println!("Loaded campaign with name {}!", asset.get_name());
-                    Redirect::to("/load_campaign")
+                    lock.active_campaign = u;
+                    Redirect::to("/vtt")
                 },
                 LoadAssetResult::UuidNotFoundError => todo!(),
-                LoadAssetResult::IoError { e } => todo!(),
+                LoadAssetResult::IoError { e: _ } => todo!(),
                 LoadAssetResult::NoCampaignFound => todo!(),
-                LoadAssetResult::UuidDuplicateError { e } => todo!(),
+                LoadAssetResult::UuidDuplicateError { e: _ } => todo!(),
             }
         }, 
         Err(e) => {
             // Uh oh 
             eprintln!("{}", e);
-            Redirect::to("/load_campaign")
+            Redirect::to("/")
         }
     }
 }
 
 #[get("/vtt")]
-pub fn vtt(command_list: &State<CommandList>) -> Template { 
-    let lock = command_list.commands.lock().expect("index");
-    Template::render("vtt", context! { 
-        subtitle: "- By GMs, For GMs.",
-        items: lock.clone(), 
-        version: panicvtt_engine::version(),
-     })
+pub fn vtt(state: &State<Mutex<PanicState>>) -> Template { 
+    let lock = state.lock().unwrap();
+
+    // Render the current campaign 
+    let c = lock.engine.get_campaign(lock.active_campaign).unwrap();
+    Template::render("vtt", context! {
+        subtitle: format!("- {}", c.get_name()),
+        version: panicvtt_engine::version(), 
+        campaign: c
+    })
 }
 
 #[post("/vtt", data = "<form_data>")]

@@ -3,6 +3,7 @@
 use std::{env::Args, fs::File, io::Read, path::Path, sync::Mutex};
 use parse_error::ParseError;
 use rocket_dyn_templates::Template;
+use rocket::fs::FileServer;
 use panic_state::PanicState;
 use routes::parse_command;
 use serde::{Serialize, Deserialize};
@@ -95,6 +96,7 @@ async fn main() -> Result<(), rocket::Error> {
     let _r = rocket::build()
         .manage(models::CommandList { commands: Mutex::new(commands) })
         .manage(Mutex::new(state)) 
+        .mount("/", FileServer::from("panicvtt_server/static"))
         .mount("/", routes![routes::index, 
             routes::add_command, 
             routes::connect,

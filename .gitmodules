@@ -1,0 +1,3 @@
+[submodule "panicvtt_server/static"]
+	path = panicvtt_server/static
+	url = git@github.com:paniccia-s/panicvtt_assets.git

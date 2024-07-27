@@ -1,19 +1,79 @@
 {% extends "base" %}
 
 {% block content %}
-<form action="disconnect/" method="post">
-    <button type="submit">Disconnect</button>
-</form>
 
-<form action="/vtt" method="post">
-    <input type="text" name="command" id="command" placeholder="Command..." autofocus>
-    <button type="submit">Submit</button>
-</form>
+<!-- Font Awesome icons -->
+<script defer src="https://use.fontawesome.com/releases/v6.6.0/js/all.js"></script>
 
-<ul>
-    {% for i in items %}
-        <li>{{i}}</li>
-    {% endfor %}
-</ul>
+<nav class="navbar" role="columnheader" aria-label="Menu Bar">
+    <div class="navbar-brand">
+        <a href="/"><img class="navbar-item" src="assets/images/icons/panicvtt.webp" href="/"></img></a>
+    </div>
+    <div class="navbar-menu">
+        <div class="navbar-start">
+            {% if campaign.scenes | length > 0 %}
+            <div class="navbar-item has-dropdown is-hoverable">
+                <a class="navbar-link">
+                    Scenes
+                </a>
+                <div class="navbar-dropdown">
+                    {% for id, s in campaign.scenes %}
+                        <a class="navbar-item">
+                            {{ s }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <a class="navbar-item">
+                Create Scene
+            </a>
+            {% endif %}
+
+            <a class="navbar-item">
+                Entities
+            </a>
+            <a class="navbar-item">
+                Items
+            </a>
+            <a class="navbar-item">
+                Compendium
+            </a>
+        </div>
+        <div class="navbar-end">
+            <a class="navbar-item">
+                TODO Name
+            </a>
+            <a class="navbar-item">
+                Settings
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="is-pulled-right" style="position: absolute; z-index: 100;">
+    <div class="tabs is-right">
+        <ul>
+            <li class="is-active"><a><span class="icon is-small">    
+                <i class="fas fa-comments" aria-hidden="true"></i>
+            </span></a></li> 
+            <li><a><span class="icon is-small">    
+                <i class="fas fa-shield" aria-hidden="true"></i>
+                <i class="fas fa-wand-magic" aria-hidden="true"></i>
+            </span></a></li> 
+            <li><a><span class="icon is-small">    
+                <i class="fas fa-book" aria-hidden="true"></i>
+            </span></a></li> 
+        </ul>
+    </div>
+</div>
+
+<canvas id="vtt_canvas" style="margin: 10; z-index: 0;"></canvas>
+
+<script type="text/javascript" src="scripts/panicvtt.js"></script>
+<script>
+    initialize();
+    draw();
+</script>
 
 {% endblock content %}
